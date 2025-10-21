@@ -35,4 +35,10 @@ class CounselingSession extends Model
         // convenience: get teacher through schedule
         return $this->hasOneThrough(User::class, CounselingSchedule::class, 'id', 'id', 'schedule_id', 'teacher_id');
     }
+
+    public function topics()
+    {
+        return $this->belongsToMany(Topic::class, 'session_topic', 'session_id', 'topic_id');
+    }
+
 }

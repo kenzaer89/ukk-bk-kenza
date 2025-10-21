@@ -1,4 +1,5 @@
 @extends('layouts.app')
+
 @section('title', 'Tambah Sesi Konseling')
 
 @section('content')
@@ -6,26 +7,33 @@
 
 <form method="POST" action="{{ route('admin.sessions.store') }}" class="space-y-4">
     @csrf
+
     <div>
-        <label class="block text-gray-300">Siswa</label>
-        <select name="id_siswa" class="w-full glass p-2 rounded text-white">
-            @foreach($students as $student)
-                <option value="{{ $student->id }}">{{ $student->name }}</option>
+        <label class="block text-gray-300 mb-1">Pilih Jadwal Konseling</label>
+        <select name="schedule_id" class="w-full glass p-2 rounded text-white" required>
+            @foreach($schedules as $schedule)
+                <option value="{{ $schedule->id }}">
+                    {{ $schedule->student->name }} - {{ $schedule->scheduled_date }}
+                </option>
             @endforeach
         </select>
     </div>
+
     <div>
-        <label class="block text-gray-300">Topik</label>
-        <input type="text" name="topik" class="w-full glass p-2 rounded text-white" required>
+        <label class="block text-gray-300 mb-1">Tanggal Sesi</label>
+        <input type="date" name="session_date" class="w-full glass p-2 rounded text-white" required>
     </div>
+
     <div>
-        <label class="block text-gray-300">Tanggal</label>
-        <input type="date" name="tanggal" class="w-full glass p-2 rounded text-white" required>
+        <label class="block text-gray-300 mb-1">Catatan Guru BK</label>
+        <textarea name="teacher_notes" rows="4" class="w-full glass p-2 rounded text-white" required></textarea>
     </div>
+
     <div>
-        <label class="block text-gray-300">Hasil Konseling</label>
-        <textarea name="hasil" rows="4" class="w-full glass p-2 rounded text-white" required></textarea>
+        <label class="block text-gray-300 mb-1">Rekomendasi Tindak Lanjut</label>
+        <textarea name="recommendations" rows="4" class="w-full glass p-2 rounded text-white"></textarea>
     </div>
-    <button type="submit" class="btn-primary">Simpan</button>
+
+    <button type="submit" class="btn-primary mt-4">Simpan</button>
 </form>
 @endsection

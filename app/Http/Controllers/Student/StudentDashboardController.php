@@ -12,13 +12,22 @@ class StudentDashboardController extends Controller
 {
     public function index()
     {
-        $id = session('user.id');
-        $requests = CounselingRequest::where('id_user',$id)->latest()->limit(5)->get();
-        $upcoming = CounselingSchedule::where('student_id',$id)
-                    ->whereDate('scheduled_date','>=',now())->limit(5)->get();
-        $sessions = CounselingSession::whereHas('schedule', fn($q)=>$q->where('student_id',$id))
-                    ->latest('session_date')->limit(5)->get();
+        $id = Auth::id(); // ← PENTING: gunakan Auth sekarang
 
-        return view('student.dashboard', compact('requests','upcoming','sessions'));
+        $requests = CounselingRequest::where('id_user', $id)
+                    ->latest()->limit(5)->get();
+
+        $upcoming = CounselingSchedule::where('student_id', $id)
+                    ->whereDate('scheduled_date', '>=', now())
+                    ->orderBy('scheduled_date','asc')
+                    ->limit(5)->get();
+
+        $sessions = CounselingSession::whereHas('schedule', function ($q) use ($id) {
+                        $q->where('student_id', $id);
+                    })
+                    ->latest('session_date')
+                    ->limit(5)->get();
+
+        return view('student.dashboard', compact('requests', 'upcoming', 'sessions'));
     }
 }

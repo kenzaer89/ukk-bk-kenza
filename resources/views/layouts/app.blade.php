@@ -71,10 +71,10 @@
             <a href="{{ route('admin.reports.index') }}">📊 Laporan</a>
         </div>
         <div>
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button class="btn-primary w-full" type="submit">Keluar</button>
-            </form>
+            <form action="{{ route('logout') }}" method="POST">
+            @csrf
+            <button type="submit">Logout</button>
+        </form>
         </div>
     </aside>
 

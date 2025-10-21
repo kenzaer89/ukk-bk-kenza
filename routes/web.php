@@ -39,18 +39,16 @@ Route::middleware(['auth.session'])->group(function () {
 });
 
 // ========== ROUTE LOGIN & REGISTER ==========
-Route::get('/', function () {
-    return redirect('/login');
-});
+Route::get('/login', [LoginController::class, 'showLoginForm'])
+    ->middleware('guest')
+    ->name('login');
 
-Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [LoginController::class, 'login']);
+Route::post('/login', [LoginController::class, 'login'])
+    ->middleware('guest')
+    ->name('login.attempt');
+
+Route::post('/logout', [LoginController::class, 'logout'])
+    ->name('logout');
+
+//LOGOUT
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
-
-Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
-Route::post('/register', [RegisterController::class, 'register']);
-
-// Tambahan dummy biar nggak error route not found
-Route::get('/password/reset', function () {
-    return view('auth.passwords.email');
-})->name('password.request');

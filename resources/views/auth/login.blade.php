@@ -33,10 +33,7 @@
             <button type="submit" class="btn-primary w-full py-3">Masuk</button>
         </form>
 
-        <p class="text-gray-400 text-sm mt-6">
-            Belum punya akun?
-            <a href="{{ route('register') }}" class="text-indigo-400 hover:underline">Daftar sekarang</a>
-        </p>
+        {{-- Bagian register dihapus karena tidak ada route register --}}
     </div>
 </div>
 @endsection

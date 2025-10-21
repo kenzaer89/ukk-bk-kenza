@@ -12,7 +12,10 @@ class ViolationController extends Controller
 {
     public function index()
     {
-        $violations = Violation::with(['student','rule'])->orderBy('occurred_at','desc')->paginate(20);
+        $violations = Violation::with(['student','rule'])
+            ->orderBy('violation_date','desc')
+            ->paginate(20);
+
         return view('admin.violations.index', compact('violations'));
     }
 
@@ -28,11 +31,14 @@ class ViolationController extends Controller
         $data = $r->validate([
             'student_id'=>'required',
             'rule_id'=>'required',
-            'occurred_at'=>'required|date',
+            'violation_date'=>'required|date',
             'notes'=>'nullable|string',
         ]);
+
         $data['points'] = Rule::find($data['rule_id'])->points ?? 0;
+
         Violation::create($data);
+
         return redirect()->route('admin.violations.index')->with('success','Pelanggaran ditambahkan');
     }
 
@@ -48,10 +54,12 @@ class ViolationController extends Controller
         $data = $r->validate([
             'student_id'=>'required',
             'rule_id'=>'required',
-            'occurred_at'=>'required|date',
+            'violation_date'=>'required|date',
             'notes'=>'nullable|string',
         ]);
+
         $violation->update($data);
+
         return back()->with('success','Pelanggaran diperbarui');
     }
 
