@@ -8,13 +8,26 @@ use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
-    // Menampilkan halaman login
     public function showLoginForm()
     {
+        // Kalau user sudah login, langsung arahkan ke dashboard sesuai role
+        if (auth()->check()) {
+            $user = auth()->user();
+            switch ($user->role) {
+                case 'admin':
+                    return redirect()->route('admin.dashboard');
+                case 'student':
+                    return redirect()->route('student.dashboard');
+                case 'parent':
+                    return redirect()->route('parent.dashboard');
+                case 'wali_kelas':
+                    return redirect()->route('wali.dashboard');
+            }
+        }
+
         return view('auth.login');
     }
 
-    // Proses login
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -25,31 +38,28 @@ class LoginController extends Controller
         if (Auth::attempt($credentials, $request->remember)) {
             $request->session()->regenerate();
 
-            // Arahkan ke dashboard sesuai role
             $user = Auth::user();
-            if ($user->role === 'admin') {
-                return redirect()->route('admin.dashboard');
-            } elseif ($user->role === 'student') {
-                return redirect()->route('student.dashboard');
-            } elseif ($user->role === 'parent') {
-                return redirect()->route('parent.dashboard');
-            } elseif ($user->role === 'wali_kelas') {
-                return redirect()->route('wali.dashboard');
+            switch ($user->role) {
+                case 'admin':
+                    return redirect()->route('admin.dashboard');
+                case 'student':
+                    return redirect()->route('student.dashboard');
+                case 'parent':
+                    return redirect()->route('parent.dashboard');
+                case 'wali_kelas':
+                    return redirect()->route('wali.dashboard');
             }
         }
 
-        return back()->withErrors([
-            'email' => 'Email atau password salah.',
-        ]);
+        return back()->withErrors(['email' => 'Email atau password salah.']);
     }
 
-    // Logout
     public function logout(Request $request)
     {
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/login');
+        return redirect('/');
     }
 }

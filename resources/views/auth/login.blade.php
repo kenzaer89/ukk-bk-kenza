@@ -1,11 +1,11 @@
-@extends('layouts.app')
+@extends('layouts.auth')
 
 @section('title', 'Login - Sistem BK')
 
 @section('content')
 <div class="flex flex-col items-center justify-center min-h-[80vh]">
     <div class="glass p-8 rounded-2xl w-full max-w-md text-center">
-        <h2 class="text-3xl font-bold text-white mb-2">Selamat Datang 👋</h2>
+        <h2 class="text-3xl font-bold text-white mb-2">Selamat Datang</h2>
         <p class="text-gray-400 mb-8">Masuk ke sistem bimbingan konseling</p>
 
         <form method="POST" action="{{ route('login') }}" class="space-y-4 text-left">
@@ -29,11 +29,11 @@
                 </label>
                 <a href="#" class="text-indigo-400 hover:underline">Lupa password?</a>
             </div>
-
-            <button type="submit" class="btn-primary w-full py-3">Masuk</button>
+            <div>
+             <button type="submit" class="btn-primary w-full py-3">Masuk</button>
+            </div>
+        
         </form>
-
-        {{-- Bagian register dihapus karena tidak ada route register --}}
     </div>
 </div>
 @endsection

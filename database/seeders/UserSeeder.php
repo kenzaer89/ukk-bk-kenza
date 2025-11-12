@@ -10,7 +10,7 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        // Admin Utama (tidak boleh hilang)
+        // Admin Utama
         User::firstOrCreate(
             ['email' => 'admin@bk.test'],
             [
@@ -20,12 +20,22 @@ class UserSeeder extends Seeder
             ]
         );
 
-        // Guru BK (jika belum ada)
+        // Guru BK 
         User::firstOrCreate(
             ['email' => 'guru_bk@bk.test'],
             [
                 'name' => 'Guru BK',
                 'role' => 'guru_bk',
+                'password' => Hash::make('password'),
+            ]
+        );
+
+        // Tambah 1 akun siswa default supaya bisa login
+        User::firstOrCreate(
+            ['email' => 'siswa@bk.test'],
+            [
+                'name' => 'Siswa Contoh',
+                'role' => 'student',
                 'password' => Hash::make('password'),
             ]
         );

@@ -60,21 +60,40 @@
     </style>
 </head>
 <body>
+    @php
+        $user = Auth::user();
+    @endphp
+
     <aside class="sidebar glass">
         <div>
             <h2 class="text-xl font-semibold text-white mb-6">BK System</h2>
-            <a href="{{ route('admin.dashboard') }}">🏠 Dashboard</a>
-            <a href="{{ route('admin.users.index') }}">👥 Pengguna</a>
-            <a href="{{ route('admin.schedules.index') }}">📅 Jadwal</a>
-            <a href="{{ route('admin.sessions.index') }}">💬 Sesi Konseling</a>
-            <a href="{{ route('admin.violations.index') }}">⚠️ Pelanggaran</a>
-            <a href="{{ route('admin.reports.index') }}">📊 Laporan</a>
+            <p class="text-sm text-gray-400 mb-4">👋 Halo, {{ $user->name ?? 'User' }}</p>
+
+            @if ($user && $user->role === 'admin')
+                <a href="{{ route('admin.dashboard') }}">🏠 Dashboard</a>
+                <a href="{{ route('admin.users.index') }}">👥 Pengguna</a>
+                <a href="{{ route('admin.schedules.index') }}">📅 Jadwal</a>
+                <a href="{{ route('admin.sessions.index') }}">💬 Sesi Konseling</a>
+                <a href="{{ route('admin.violations.index') }}">⚠️ Pelanggaran</a>
+                <a href="{{ route('admin.reports.index') }}">📊 Laporan</a>
+
+            @elseif ($user && $user->role === 'student')
+                <a href="{{ route('student.dashboard') }}">🏠 Dashboard</a>
+                <a href="{{ route('student.requests.index') }}">📝 Permintaan Konseling</a>
+
+            @elseif ($user && $user->role === 'parent')
+                <a href="{{ route('parent.dashboard') }}">🏠 Dashboard</a>
+
+            @elseif ($user && $user->role === 'wali_kelas')
+                <a href="{{ route('wali.dashboard') }}">🏠 Dashboard</a>
+            @endif
         </div>
+
         <div>
             <form action="{{ route('logout') }}" method="POST">
-            @csrf
-            <button type="submit">Logout</button>
-        </form>
+                @csrf
+                <button type="submit" class="text-red-400 hover:text-red-300">🚪 Logout</button>
+            </form>
         </div>
     </aside>
 
