@@ -2,27 +2,17 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class CounselingSchedule extends Model
 {
-    use HasFactory;
-
-    protected $table = 'counseling_schedules';
-
     protected $fillable = [
-        'student_id',
-        'teacher_id',
-        'scheduled_date',
-        'start_time',
-        'end_time',
-        'status',      // scheduled, completed, cancelled
-        'admin_notes',
+        'counseling_request_id', 'scheduled_date', 'start_time', 'end_time', 
+        'status', 'student_notes', 'admin_notes', 'student_id', 'teacher_id'
     ];
 
-    protected $dates = [
-        'scheduled_date',
+    protected $casts = [
+        'scheduled_date' => 'date',
     ];
 
     public function student()
@@ -35,8 +25,8 @@ class CounselingSchedule extends Model
         return $this->belongsTo(User::class, 'teacher_id');
     }
 
-    public function session()
+    public function counselingRequest()
     {
-        return $this->hasOne(CounselingSession::class, 'schedule_id');
+        return $this->belongsTo(CounselingRequest::class);
     }
 }

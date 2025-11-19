@@ -8,22 +8,27 @@ use Illuminate\Database\Eloquent\Model;
 class ActivityLog extends Model
 {
     use HasFactory;
-
-    protected $table = 'activity_logs';
-
+    
     protected $fillable = [
         'user_id',
+        'log_type',
         'action',
-        'meta', // json
-        'created_at',
+        'loggable_type',
+        'loggable_id',
+        'old_data',
+        'new_data',
+        'ip_address',
     ];
-
-    protected $casts = [
-        'meta' => 'array',
-    ];
-
+    
+    // Relasi ke pengguna yang melakukan aksi
     public function user()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class);
+    }
+    
+    // Relasi polimorfik ke objek yang dilog
+    public function loggable()
+    {
+        return $this->morphTo();
     }
 }

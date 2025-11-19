@@ -6,27 +6,24 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-       Schema::create('activity_logs', function (Blueprint $table) {
-        $table->id();
-        $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
-        $table->text('activity');
-        $table->string('ip_address',45)->nullable();
-        $table->text('user_agent')->nullable();
-        $table->timestamp('created_at')->useCurrent();
-
-
-        $table->index('user_id','idx_activity_logs_user_id');
+        Schema::create('activity_logs', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null'); // Siapa yang melakukan
+            $table->string('log_type'); // Contoh: 'Violation', 'User', 'Counseling'
+            $table->string('action'); // Contoh: 'created', 'updated', 'deleted', 'scheduled'
+            $table->morphs('loggable'); // Relasi polimorfik ke objek yang diubah (e.g., Violation, User)
+            $table->text('old_data')->nullable(); // Data sebelum perubahan (untuk update)
+            $table->text('new_data')->nullable(); // Data setelah perubahan
+            $table->string('ip_address', 45)->nullable();
+            $table->timestamps();
+            
+            // Indeks untuk pencarian cepat
+            $table->index(['log_type', 'action']);
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('activity_logs');

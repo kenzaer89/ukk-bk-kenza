@@ -8,37 +8,43 @@ use Illuminate\Database\Eloquent\Model;
 class CounselingSession extends Model
 {
     use HasFactory;
-
-    protected $table = 'counseling_sessions';
+    
+    protected $table = 'counseling_sessions'; 
 
     protected $fillable = [
-        'schedule_id',
+        'student_id',
+        'counselor_id',
+        'session_type', // individual, group, referral
+        'request_reason', // Alasan permintaan (saat siswa buat)
         'session_date',
-        'teacher_notes',
-        'recommendations',
+        'start_time',
+        'end_time',
+        'location',
+        'notes', // Catatan hasil sesi (diisi Guru BK)
+        'status', // requested, scheduled, completed, cancelled
+        'follow_up_required',
     ];
-
-    protected $dates = ['session_date'];
-
-    public function schedule()
+    
+    protected $casts = [
+        'session_date' => 'date',
+        'follow_up_required' => 'boolean',
+    ];
+    
+    // Relasi ke Siswa (Requester)
+    public function student()
     {
-        return $this->belongsTo(CounselingSchedule::class, 'schedule_id');
+        return $this->belongsTo(User::class, 'student_id')->with('studentClass');
+    }
+    
+    // Relasi ke Konselor (Guru BK)
+    public function counselor()
+    {
+        return $this->belongsTo(User::class, 'counselor_id');
     }
 
-    public function files()
-    {
-        return $this->hasMany(CounselingFile::class, 'session_id');
-    }
-
-    public function teacher()
-    {
-        // convenience: get teacher through schedule
-        return $this->hasOneThrough(User::class, CounselingSchedule::class, 'id', 'id', 'schedule_id', 'teacher_id');
-    }
-
+    // Relasi ke Topik (Many-to-Many)
     public function topics()
     {
         return $this->belongsToMany(Topic::class, 'session_topic', 'session_id', 'topic_id');
     }
-
 }

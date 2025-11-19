@@ -4,58 +4,57 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'BK Dashboard')</title>
-    @vite('resources/css/app.css')
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
+        /* CSS umum (tetap di sini agar Vite tidak menimpanya) */
         body {
             background: radial-gradient(circle at top left, #0f172a, #1e293b);
             color: #f8fafc;
             font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex; /* Menggunakan flex untuk membagi sidebar dan konten */
             min-height: 100vh;
-            display: flex;
         }
-        .glass {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
+
+        /* Gaya Sidebar */
         .sidebar {
-            width: 240px;
-            padding: 1.5rem;
+            width: 256px; /* w-64 */
+            flex-shrink: 0; /* Mencegah sidebar menyusut */
+            min-height: 100vh;
+            padding: 1.5rem; /* p-6 */
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            border-right: 1px solid #334155; /* border-gray-700 */
         }
-        .sidebar a {
-            color: #cbd5e1;
-            text-decoration: none;
-            margin: 0.5rem 0;
-            display: block;
-            padding: 0.75rem 1rem;
-            border-radius: 10px;
-            transition: 0.3s;
-        }
-        .sidebar a:hover {
-            background: rgba(255, 255, 255, 0.15);
-            color: #fff;
-        }
+
+        /* Gaya Konten Utama */
         .content {
-            flex: 1;
-            padding: 2rem;
-            overflow-y: auto;
+            flex-grow: 1; /* Mengisi sisa ruang */
+            padding: 1.5rem; /* p-6 */
         }
-        .btn-primary {
-            background: linear-gradient(90deg, #6366f1, #8b5cf6);
-            padding: 0.6rem 1.2rem;
-            border-radius: 10px;
+        
+        .sidebar a {
+            display: block;
+            padding: 0.75rem 0.5rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0.5rem;
+            color: #9ca3af; /* gray-400 */
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .sidebar a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
             color: white;
-            font-weight: 600;
-            text-decoration: none;
-            transition: 0.3s;
         }
-        .btn-primary:hover {
-            opacity: 0.9;
+
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
     </style>
 </head>
@@ -64,43 +63,31 @@
         $user = Auth::user();
     @endphp
 
-    <aside class="sidebar glass">
+    <aside class="sidebar bg-gray-900">
         <div>
-            <h2 class="text-xl font-semibold text-white mb-6">BK System</h2>
-            <p class="text-sm text-gray-400 mb-4">👋 Halo, {{ $user->name ?? 'User' }}</p>
+            <h2 class="text-2xl font-extrabold text-indigo-400 mb-8">BK System</h2>
+            <p class="text-sm font-semibold text-gray-300 mb-6">👋 Halo, {{ $user->name ?? 'User' }}</p>
 
-            @if ($user && $user->role === 'admin')
-                <a href="{{ route('admin.dashboard') }}">🏠 Dashboard</a>
-                <a href="{{ route('admin.users.index') }}">👥 Pengguna</a>
-                <a href="{{ route('admin.schedules.index') }}">📅 Jadwal</a>
-                <a href="{{ route('admin.sessions.index') }}">💬 Sesi Konseling</a>
-                <a href="{{ route('admin.violations.index') }}">⚠️ Pelanggaran</a>
-                <a href="{{ route('admin.reports.index') }}">📊 Laporan</a>
-
-            @elseif ($user && $user->role === 'student')
-                <a href="{{ route('student.dashboard') }}">🏠 Dashboard</a>
-                <a href="{{ route('student.requests.index') }}">📝 Permintaan Konseling</a>
-
-            @elseif ($user && $user->role === 'parent')
-                <a href="{{ route('parent.dashboard') }}">🏠 Dashboard</a>
-
-            @elseif ($user && $user->role === 'wali_kelas')
-                <a href="{{ route('wali.dashboard') }}">🏠 Dashboard</a>
-            @endif
+            <nav class="space-y-2">
+                @if ($user && $user->role === 'student')
+                    <a href="{{ route('student.dashboard') }}" class="{{ request()->routeIs('student.dashboard') ? 'bg-indigo-600 text-white font-bold' : 'hover:bg-gray-700' }}">🏠 Dashboard</a>
+                    <a href="{{ route('student.requests.index') }}" class="{{ request()->routeIs('student.requests.index') ? 'bg-indigo-600 text-white font-bold' : 'hover:bg-gray-700' }}">📝 Permintaan Konseling</a>
+                @elseif ($user && $user->role === 'admin')
+                    {{-- Tambahkan navigasi Admin di sini --}}
+                @endif
+            </nav>
         </div>
 
-        <div>
+        <div class="mt-8">
             <form action="{{ route('logout') }}" method="POST">
                 @csrf
-                <button type="submit" class="text-red-400 hover:text-red-300">🚪 Logout</button>
+                <button type="submit" class="w-full text-left py-2 px-3 rounded-lg text-red-400 hover:bg-gray-700 transition">🚪 Logout</button>
             </form>
         </div>
     </aside>
 
     <main class="content">
-        <div class="glass p-6 rounded-2xl">
-            @yield('content')
-        </div>
+        @yield('content')
     </main>
 </body>
 </html>

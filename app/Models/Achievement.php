@@ -9,7 +9,18 @@ class Achievement extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['student_id','name','level','achievement_date','notes'];
+    protected $fillable = [
+        'student_id',
+        'name', 
+        'level',
+        'achievement_date',
+        'notes',
+        'point'
+    ];
+
+    protected $casts = [
+        'achievement_date' => 'date',
+    ];
 
     public function student()
     {

@@ -8,15 +8,17 @@ use Illuminate\Database\Eloquent\Model;
 class Rule extends Model
 {
     use HasFactory;
-
-    protected $table = 'rules';
+    
+    protected $table = 'rules'; 
 
     protected $fillable = [
-        'title',
+        'name',
+        'points', // Poin yang dikurangi (nilai positif)
         'description',
-        'points',
+        'category',
     ];
-
+    
+    // Relasi ke Pelanggaran
     public function violations()
     {
         return $this->hasMany(Violation::class, 'rule_id');

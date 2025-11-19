@@ -7,65 +7,44 @@ use App\Models\Violation;
 use App\Models\User;
 use App\Models\Rule;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule as ValidationRule;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth; // Tambahkan ini
 
 class ViolationController extends Controller
 {
-    public function index()
+    /**
+     * Menyimpan data pelanggaran baru. (CREATE - Store)
+     */
+    public function store(Request $request)
     {
-        $violations = Violation::with(['student','rule'])
-            ->orderBy('violation_date','desc')
-            ->paginate(20);
-
-        return view('admin.violations.index', compact('violations'));
-    }
-
-    public function create()
-    {
-        $students = User::where('role','student')->get();
-        $rules = Rule::all();
-        return view('admin.violations.create', compact('students','rules'));
-    }
-
-    public function store(Request $r)
-    {
-        $data = $r->validate([
-            'student_id'=>'required',
-            'rule_id'=>'required',
-            'violation_date'=>'required|date',
-            'notes'=>'nullable|string',
+        $request->validate([
+            'student_id' => 'required|exists:users,id,role,student',
+            'rule_id' => 'required|exists:rules,id',
+            'violation_date' => 'required|date',
+            'description' => 'nullable|string',
+            'status' => 'required|in:pending,resolved,escalated',
         ]);
 
-        $data['points'] = Rule::find($data['rule_id'])->points ?? 0;
+        try {
+            $violation = Violation::create([
+                'student_id' => $request->student_id,
+                'rule_id' => $request->rule_id,
+                'violation_date' => $request->violation_date,
+                'description' => $request->description,
+                'teacher_id' => Auth::id(), // PERBAIKAN: Gunakan Auth::id()
+                'status' => $request->status, 
+            ]);
 
-        Violation::create($data);
+            $rulePoints = $violation->rule->points;
 
-        return redirect()->route('admin.violations.index')->with('success','Pelanggaran ditambahkan');
-    }
+            return redirect()->route('admin.violations.index')
+                             ->with('success', 'Pelanggaran siswa berhasil dicatat dan poin telah dikurangi (-' . $rulePoints . ').');
 
-    public function edit(Violation $violation)
-    {
-        $students = User::where('role','student')->get();
-        $rules = Rule::all();
-        return view('admin.violations.edit', compact('violation','students','rules'));
-    }
-
-    public function update(Request $r, Violation $violation)
-    {
-        $data = $r->validate([
-            'student_id'=>'required',
-            'rule_id'=>'required',
-            'violation_date'=>'required|date',
-            'notes'=>'nullable|string',
-        ]);
-
-        $violation->update($data);
-
-        return back()->with('success','Pelanggaran diperbarui');
-    }
-
-    public function destroy(Violation $violation)
-    {
-        $violation->delete();
-        return back()->with('success','Data dihapus');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                             ->withInput()
+                             ->with('error', 'Gagal mencatat pelanggaran. Error: ' . $e->getMessage());
+        }
     }
 }

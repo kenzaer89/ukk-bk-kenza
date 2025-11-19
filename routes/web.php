@@ -6,16 +6,22 @@ use App\Http\Controllers\Student\StudentDashboardController;
 use App\Http\Controllers\ParentRole\ParentDashboardController;
 use App\Http\Controllers\Wali\WaliDashboardController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Admin\CounselingSessionController; // Tambahan Controller Sesi Konseling Admin
+use App\Http\Controllers\Student\CounselingRequestController;
+use App\Http\Controllers\Admin\NotificationController;
+use Illuminate\Support\Facades\Auth;
 
-
-//Halaman Utama (Welcome)
-
+// =====================================================================
+// 🏡 HALAMAN UTAMA (WELCOME)
+// Logic: Cek status login, jika sudah, redirect sesuai role. Jika belum, tampilkan welcome view.
+// =====================================================================
 Route::get('/', function () {
     // Kalau sudah login, langsung ke dashboard sesuai role
-    if (auth()->check()) {
-        $user = auth()->user();
+    if (Auth::check()) {
+        $user = Auth::user();
         switch ($user->role) {
             case 'admin':
+            case 'guru_bk': // Guru BK diarahkan ke dashboard Admin
                 return redirect()->route('admin.dashboard');
             case 'student':
                 return redirect()->route('student.dashboard');
@@ -44,25 +50,57 @@ Route::post('/login', [LoginController::class, 'login'])
 Route::post('/logout', [LoginController::class, 'logout'])
     ->name('logout');
 
-// ===============================
-// 🧭 DASHBOARD PER ROLE
-// ===============================
+// =====================================================================
+// 🧭 DASHBOARD DAN FITUR PER ROLE (Membutuhkan user terautentikasi)
+// =====================================================================
 Route::middleware(['auth'])->group(function () {
 
-    // --- ADMIN ---
-    Route::middleware(['role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    // --- ADMIN & GURU BK ---
+    // Akses ke fitur administrasi dan pengelolaan data master
+    Route::middleware(['role:admin,guru_bk'])->prefix('admin')->name('admin.')->group(function () {
+        
+        // DASHBOARD ADMIN & GURU BK (Controller di sini harus memiliki logika role-switching)
         Route::get('dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+        
+        // RESOURCE ROUTES
         Route::resource('users', App\Http\Controllers\Admin\UserController::class);
         Route::resource('schedules', App\Http\Controllers\Admin\ScheduleController::class);
-        Route::resource('sessions', App\Http\Controllers\Admin\SessionController::class);
+        Route::resource('achievements', App\Http\Controllers\Admin\AchievementController::class);
+        Route::resource('classes', App\Http\Controllers\Admin\ClassController::class);
+        Route::resource('rules', App\Http\Controllers\Admin\RuleController::class);
+        Route::resource('point_levels', App\Http\Controllers\Admin\PointLevelController::class);
+        Route::resource('topics', App\Http\Controllers\Admin\TopicController::class);
+        
+        // PENCATATAN PELANGGARAN
         Route::resource('violations', App\Http\Controllers\Admin\ViolationController::class);
-        Route::resource('reports', App\Http\Controllers\Admin\ReportController::class);
+        
+        // LAPORAN BULANAN
+        Route::resource('monthly_reports', App\Http\Controllers\Admin\MonthlyReportController::class)->names('monthly_reports');
+        
+        // PENGELOLAAN SESI KONSELING
+        Route::resource('counseling_sessions', CounselingSessionController::class)->only(['index', 'edit', 'update'])->names('counseling_sessions');
+        
+        // LOG AKTIVITAS (Activity Log)
+        Route::get('activity_logs', [App\Http\Controllers\Admin\ActivityLogController::class, 'index'])->name('activity_logs.index');
+        Route::get('activity_logs/{log}', [App\Http\Controllers\Admin\ActivityLogController::class, 'show'])->name('activity_logs.show');
+        
+        // Notifikasi
+        Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+        Route::post('notifications/mark-read', [NotificationController::class, 'markAsRead'])->name('notifications.markRead');
+        Route::post('notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.markAllRead');
+        Route::delete('notifications/delete', [NotificationController::class, 'destroy'])->name('notifications.destroy');
+        Route::get('notifications/count', [NotificationController::class, 'unreadCount'])->name('notifications.unreadCount');
+        
     });
+
 
     // --- STUDENT ---
     Route::middleware(['role:student'])->prefix('student')->name('student.')->group(function () {
         Route::get('dashboard', [StudentDashboardController::class, 'index'])->name('dashboard');
-        Route::resource('requests', App\Http\Controllers\Student\RequestController::class);
+        
+        // PERMINTAAN KONSELING SISWA
+        Route::resource('counseling_requests', CounselingRequestController::class)->only(['index', 'create', 'store']);
+        Route::post('counseling_requests/{request}/cancel', [CounselingRequestController::class, 'cancel'])->name('counseling_requests.cancel');
     });
     
     // --- PARENT ---

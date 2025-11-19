@@ -67,6 +67,16 @@ class User extends Authenticatable
         return $this->hasMany(Violation::class, 'student_id');
     }
 
+    public function scopeStudents($query)
+    {
+        return $query->where('role', 'student');
+    }
+
+    public function scopeWaliKelas($query)
+    {
+        return $query->where('role', 'wali_kelas');
+    }
+    
     public function parentConnections()
     {
         return $this->hasMany(ParentStudent::class, 'parent_id');
