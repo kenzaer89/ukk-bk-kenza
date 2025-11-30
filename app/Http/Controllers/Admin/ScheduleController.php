@@ -29,8 +29,8 @@ class ScheduleController extends Controller
      */
     public function create(Request $request)
     {
-        $students = User::students()->orderBy('name')->get(); 
-        $teachers = User::teachers()->orderBy('name')->get();
+        $students = User::students()->with('schoolClass')->orderBy('name')->get(); 
+        $teachers = User::whereIn('role', ['guru_bk', 'admin'])->orderBy('name')->get();
         
         // Cek apakah ada request_id yang dilewatkan (dari persetujuan permintaan)
         $requestId = $request->query('request_id');
@@ -87,8 +87,8 @@ class ScheduleController extends Controller
      */
     public function edit(CounselingSchedule $schedule)
     {
-        $students = User::students()->orderBy('name')->get();
-        $teachers = User::teachers()->orderBy('name')->get();
+        $students = User::students()->with('schoolClass')->orderBy('name')->get();
+        $teachers = User::whereIn('role', ['guru_bk', 'admin'])->orderBy('name')->get();
         
         return view('admin.schedules.edit', compact('schedule', 'students', 'teachers'));
     }

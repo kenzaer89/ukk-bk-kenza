@@ -14,35 +14,43 @@ class CounselingSession extends Model
     protected $fillable = [
         'student_id',
         'counselor_id',
-        'session_type', // individual, group, referral
-        'request_reason', // Alasan permintaan (saat siswa buat)
+        'schedule_id',
+        'session_type',
         'session_date',
         'start_time',
         'end_time',
         'location',
-        'notes', // Catatan hasil sesi (diisi Guru BK)
-        'status', // requested, scheduled, completed, cancelled
+        'notes',
+        'status',
         'follow_up_required',
+        'teacher_notes',
+        'recommendations',
     ];
     
     protected $casts = [
         'session_date' => 'date',
-        'follow_up_required' => 'boolean',
     ];
     
-    // Relasi ke Siswa (Requester)
-    public function student()
+    // Relasi ke Schedule
+    public function schedule()
     {
-        return $this->belongsTo(User::class, 'student_id')->with('studentClass');
+        return $this->belongsTo(CounselingSchedule::class, 'schedule_id');
     }
     
-    // Relasi ke Konselor (Guru BK)
+    
+    // Relasi ke Siswa
+    public function student()
+    {
+        return $this->belongsTo(User::class, 'student_id');
+    }
+    
+    // Relasi ke Konselor
     public function counselor()
     {
         return $this->belongsTo(User::class, 'counselor_id');
     }
 
-    // Relasi ke Topik (Many-to-Many)
+    // Relasi ke Topics (many-to-many)
     public function topics()
     {
         return $this->belongsToMany(Topic::class, 'session_topic', 'session_id', 'topic_id');

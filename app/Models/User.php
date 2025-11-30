@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable; // if you use auth features
 use Illuminate\Notifications\Notifiable;
@@ -17,6 +18,9 @@ class User extends Authenticatable
         'role',       // admin, guru_bk, student, parent, wali_kelas
         'phone',
         'class_id',   // optional
+        'absen',      // nomor absen
+        'specialization', // jurusan
+        'points',     // poin pelanggaran (default 100)
         'extra',      // any extra json/text column
     ];
 

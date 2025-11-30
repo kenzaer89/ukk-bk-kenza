@@ -25,6 +25,7 @@
                         <th class="px-5 py-3">Siswa</th>
                         <th class="px-5 py-3">Nama Prestasi</th>
                         <th class="px-5 py-3">Tingkat</th>
+                        <th class="px-5 py-3">Poin</th>
                         <th class="px-5 py-3">Tanggal</th>
                         <th class="px-5 py-3">Aksi</th>
                     </tr>
@@ -34,7 +35,7 @@
                         <tr class="hover:bg-gray-700 transition duration-150 border-b border-gray-700">
                             <td class="px-5 py-5 text-sm font-medium text-white">
                                 {{ $achievement->student->name ?? 'Siswa Terhapus' }}
-                                <span class="text-xs text-gray-400 block">{{ $achievement->student->studentClass->name ?? '-' }}</span>
+                                <span class="text-xs text-gray-400 block">{{ $achievement->student->schoolClass->name ?? '-' }}</span>
                             </td>
                             <td class="px-5 py-5 text-sm">{{ $achievement->name }}</td>
                             <td class="px-5 py-5 text-sm capitalize">
@@ -42,6 +43,7 @@
                                     {{ $achievement->level }}
                                 </span>
                             </td>
+                            <td class="px-5 py-5 text-sm font-bold text-green-400">+{{ $achievement->point }}</td>
                             <td class="px-5 py-5 text-sm">{{ $achievement->achievement_date ? $achievement->achievement_date->format('d M Y') : '-' }}</td>
                             <td class="px-5 py-5 text-sm space-x-2">
                                 <a href="{{ route('admin.achievements.edit', $achievement) }}" 

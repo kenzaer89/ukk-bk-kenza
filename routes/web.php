@@ -78,7 +78,7 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('monthly_reports', App\Http\Controllers\Admin\MonthlyReportController::class)->names('monthly_reports');
         
         // PENGELOLAAN SESI KONSELING
-        Route::resource('counseling_sessions', CounselingSessionController::class)->only(['index', 'edit', 'update'])->names('counseling_sessions');
+        Route::resource('counseling_sessions', CounselingSessionController::class)->names('counseling_sessions');
         
         // LOG AKTIVITAS (Activity Log)
         Route::get('activity_logs', [App\Http\Controllers\Admin\ActivityLogController::class, 'index'])->name('activity_logs.index');
@@ -91,12 +91,23 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('notifications/delete', [NotificationController::class, 'destroy'])->name('notifications.destroy');
         Route::get('notifications/count', [NotificationController::class, 'unreadCount'])->name('notifications.unreadCount');
         
+        // Check new counseling requests (untuk auto-refresh dashboard)
+        Route::get('check-new-requests', [AdminDashboardController::class, 'checkNewRequests'])->name('check_new_requests');
+        
+        // PERMINTAAN KONSELING (Guru BK)
+        Route::resource('counseling_requests', App\Http\Controllers\Admin\CounselingRequestController::class)->only(['index', 'show', 'destroy']);
+        Route::post('counseling_requests/{counseling_request}/approve', [App\Http\Controllers\Admin\CounselingRequestController::class, 'approve'])->name('counseling_requests.approve');
+        Route::post('counseling_requests/{counseling_request}/reject', [App\Http\Controllers\Admin\CounselingRequestController::class, 'reject'])->name('counseling_requests.reject');
+        Route::post('counseling_requests/{counseling_request}/postpone', [App\Http\Controllers\Admin\CounselingRequestController::class, 'postpone'])->name('counseling_requests.postpone');
+        
     });
 
 
     // --- STUDENT ---
     Route::middleware(['role:student'])->prefix('student')->name('student.')->group(function () {
         Route::get('dashboard', [StudentDashboardController::class, 'index'])->name('dashboard');
+        Route::get('violations', [StudentDashboardController::class, 'violations'])->name('violations.index');
+        Route::get('achievements', [StudentDashboardController::class, 'achievements'])->name('achievements.index');
         
         // PERMINTAAN KONSELING SISWA
         Route::resource('counseling_requests', CounselingRequestController::class)->only(['index', 'create', 'store']);
@@ -113,3 +124,5 @@ Route::middleware(['auth'])->group(function () {
         Route::get('dashboard', [WaliDashboardController::class, 'index'])->name('dashboard');
     });
 });
+
+require __DIR__.'/auth.php';

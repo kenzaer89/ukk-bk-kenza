@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
-use App\Models\CounselingSession;
+use App\Models\CounselingRequest;
 use App\Models\Topic;
 use Illuminate\Http\Request;
 
@@ -11,8 +11,8 @@ class CounselingRequestController extends Controller
 {
     public function index()
     {
-        $requests = CounselingSession::where('student_id', auth()->id())
-                                    ->with('counselor')
+        $requests = CounselingRequest::where('student_id', auth()->id())
+                                    ->with('teacher')
                                     ->latest()
                                     ->paginate(10);
         
@@ -21,42 +21,32 @@ class CounselingRequestController extends Controller
 
     public function create()
     {
-        $topics = Topic::orderBy('name')->get();
-        return view('student.counseling_requests.create', compact('topics'));
+        return view('student.counseling_requests.create');
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'request_reason' => 'required|string|max:500',
-            'topic_ids' => 'required|array|min:1',
-            'topic_ids.*' => 'exists:topics,id',
+            'reason' => 'required|string|max:500',
         ]);
 
-        // Catat sesi dengan status 'requested'
-        $session = CounselingSession::create([
+        CounselingRequest::create([
             'student_id' => auth()->id(),
-            'session_type' => 'individual', 
-            'request_reason' => $request->request_reason,
-            'session_date' => now()->toDateString(), // Tanggal awal, akan diupdate Guru BK
-            'status' => 'requested',
+            'reason' => $request->reason,
+            'status' => 'pending',
         ]);
-        
-        // Kaitkan topik
-        $session->topics()->attach($request->topic_ids);
 
         return redirect()->route('student.counseling_requests.index')
-                         ->with('success', 'Permintaan konseling berhasil diajukan. Guru BK akan segera menjadwalkannya.');
+                         ->with('success', 'Permintaan konseling berhasil diajukan. Guru BK akan segera menindaklanjuti.');
     }
     
-    // Siswa hanya bisa membatalkan permintaan yang berstatus 'requested'
-    public function cancel(CounselingSession $session)
+    public function cancel(CounselingRequest $counseling_request)
     {
-        if ($session->student_id !== auth()->id() || $session->status !== 'requested') {
+        if ($counseling_request->student_id !== auth()->id() || $counseling_request->status !== 'pending') {
             return redirect()->back()->with('error', 'Anda hanya dapat membatalkan permintaan yang berstatus pending.');
         }
 
-        $session->update(['status' => 'cancelled']);
+        $counseling_request->update(['status' => 'rejected']);
         
         return redirect()->back()->with('success', 'Permintaan konseling berhasil dibatalkan.');
     }

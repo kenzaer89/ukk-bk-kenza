@@ -18,7 +18,7 @@
                     <option value="">-- Cari Siswa --</option>
                     @foreach ($students as $student)
                         <option value="{{ $student->id }}" {{ old('student_id', $achievement->student_id) == $student->id ? 'selected' : '' }}>
-                            {{ $student->name }} ({{ $student->nis }}) - {{ $student->studentClass->name ?? 'Tanpa Kelas' }}
+                            {{ $student->name }} ({{ $student->nis }}) - {{ $student->schoolClass->name ?? 'Tanpa Kelas' }}
                         </option>
                     @endforeach
                 </select>
@@ -55,10 +55,18 @@
             </div>
 
             <div>
-                <label for="notes" class="block text-sm font-medium text-gray-300 mb-2">Catatan (Opsional)</label>
-                <textarea name="notes" id="notes" rows="3"
-                          class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white">{{ old('notes', $achievement->notes) }}</textarea>
-                @error('notes') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
+                <label for="point" class="block text-sm font-medium text-gray-300 mb-2">Poin Prestasi</label>
+                <input type="number" name="point" id="point" value="{{ old('point', $achievement->point) }}" required min="1"
+                       class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white">
+                <p class="text-xs text-gray-400 mt-1">Mengubah poin akan menyesuaikan total poin siswa secara otomatis</p>
+                @error('point') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
+            </div>
+
+            <div>
+                <label for="description" class="block text-sm font-medium text-gray-300 mb-2">Deskripsi Prestasi</label>
+                <textarea name="description" id="description" rows="3" required
+                          class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white">{{ old('description', $achievement->description) }}</textarea>
+                @error('description') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
             </div>
 
             <div class="flex justify-end space-x-3 pt-4">

@@ -71,7 +71,7 @@
                                             onclick="return confirm('Batalkan jadwal ini?')">Batal</button>
                                 </form>
                                 @if (!$schedule->session)
-                                    <a href="{{ route('admin.sessions.create', ['schedule_id' => $schedule->id]) }}" 
+                                    <a href="{{ route('admin.counseling_sessions.create', ['schedule_id' => $schedule->id]) }}" 
                                        class="text-green-400 hover:text-green-300 font-semibold">| Catat Sesi</a>
                                 @endif
                             </td>

@@ -13,6 +13,7 @@ class SchoolClass extends Model
 
     protected $fillable = [
         'name',
+        'jurusan',
         'wali_kelas_id', // teacher in charge
         'extra',
     ];

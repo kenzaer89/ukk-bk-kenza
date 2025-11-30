@@ -101,7 +101,7 @@
                 @foreach ($students as $student)
                     <option value="{{ $student->id }}" 
                         {{ (in_array($student->id, old('student_ids', $relatedStudentIds ?? []))) ? 'selected' : '' }}>
-                        {{ $student->name }} ({{ $student->nis }}) - {{ $student->studentClass->name ?? 'Tanpa Kelas' }}
+                        {{ $student->name }} ({{ $student->nis }}) - {{ $student->schoolClass->name ?? 'Tanpa Kelas' }}
                     </option>
                 @endforeach
             </select>

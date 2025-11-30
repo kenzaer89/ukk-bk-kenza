@@ -38,7 +38,7 @@
                         <tr class="hover:bg-gray-700 transition duration-150 border-b border-gray-700">
                             <td class="px-5 py-5 text-sm">{{ $loop->iteration }}</td>
                             <td class="px-5 py-5 text-sm font-medium text-white">{{ $violation->student->name ?? 'N/A' }}</td>
-                            <td class="px-5 py-5 text-sm">{{ $violation->student->studentClass->name ?? 'N/A' }}</td>
+                            <td class="px-5 py-5 text-sm">{{ $violation->student->schoolClass->name ?? 'N/A' }}</td>
                             <td class="px-5 py-5 text-sm text-red-400">{{ $violation->rule->name ?? 'Aturan Dihapus' }}</td>
                             <td class="px-5 py-5 text-sm text-red-500 font-bold">{{ $violation->rule->points ?? 0 }}</td>
                             <td class="px-5 py-5 text-sm">{{ \Carbon\Carbon::parse($violation->violation_date)->format('d M Y') }}</td>

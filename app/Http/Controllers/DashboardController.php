@@ -100,7 +100,7 @@ class DashboardController extends Controller
             ->orderByDesc('total_points_deducted')
             ->take(3)
             ->with(['student' => function($q) { 
-                $q->with('studentClass'); 
+                $q->with('schoolClass'); 
             }]) 
             ->get();
             
@@ -158,7 +158,7 @@ class DashboardController extends Controller
     $student = Auth::user();
     
     // PERBAIKAN: Gunakan with() untuk eager loading, atau load() secara terpisah
-    $student->load('studentClass');
+    $student->load('schoolClass');
     // ATAU gunakan eager loading dari awal:
     // $student = Auth::user()->load('studentClass');
 
@@ -201,7 +201,7 @@ class DashboardController extends Controller
                         ->join('parent_student', 'users.id', '=', 'parent_student.student_id')
                         ->where('parent_student.parent_id', $parent->id)
                         ->where('users.role', 'student')
-                        ->with('studentClass')
+                        ->with('schoolClass')
                         ->get();
         
         $childrenIds = $children->pluck('id');

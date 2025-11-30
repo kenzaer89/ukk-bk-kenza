@@ -82,9 +82,9 @@ class MonthlyReportController extends Controller
             ->groupBy('student_id')
             ->orderByDesc('total_points_deducted')
             ->take(5)
-            // PERBAIKAN: Pastikan relasi 'student' dan 'studentClass' ada di model Violation
+            // PERBAIKAN: Pastikan relasi 'student' dan 'schoolClass' ada di model Violation
             ->with(['student' => function($q) { 
-                $q->with('studentClass'); 
+                $q->with('schoolClass'); 
             }]) 
             ->get();
             

@@ -123,7 +123,7 @@
                                 <tr class="border-b border-gray-600 last:border-b-0">
                                     <td class="px-5 py-4 text-sm font-bold text-yellow-400">{{ $loop->iteration }}</td>
                                     <td class="px-5 py-4 text-sm text-white">{{ $item->student->name ?? 'N/A' }}</td>
-                                    <td class="px-5 py-4 text-sm text-gray-300">{{ $item->student->studentClass->name ?? '-' }}</td>
+                                    <td class="px-5 py-4 text-sm text-gray-300">{{ $item->student->schoolClass->name ?? '-' }}</td>
                                     <td class="px-5 py-4 text-sm font-extrabold text-red-500 text-right">{{ $item->total_points_deducted }}</td>
                                 </tr>
                             @endforeach

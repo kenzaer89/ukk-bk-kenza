@@ -17,7 +17,7 @@
                     <option value="">-- Pilih Siswa --</option>
                     @foreach ($students as $student)
                         <option value="{{ $student->id }}" {{ old('student_id') == $student->id ? 'selected' : '' }}>
-                            {{ $student->name }} ({{ $student->nis }}) - {{ $student->studentClass->name ?? 'Tanpa Kelas' }}
+                            {{ $student->name }} - {{ $student->schoolClass->name ?? 'Tanpa Kelas' }} (Absen: {{ $student->absen ?? '-' }}) - {{ $student->specialization ?? '-' }}
                         </option>
                     @endforeach
                 </select>
@@ -46,10 +46,21 @@
             </div>
 
             <div>
-                <label for="notes" class="block text-sm font-medium text-gray-300 mb-2">Catatan Tambahan (Opsional)</label>
-                <textarea name="notes" id="notes" rows="4"
-                          class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-red-500 focus:border-red-500 text-sm text-white">{{ old('notes') }}</textarea>
-                @error('notes') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
+                <label for="description" class="block text-sm font-medium text-gray-300 mb-2">Catatan Tambahan (Opsional)</label>
+                <textarea name="description" id="description" rows="4"
+                          class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-red-500 focus:border-red-500 text-sm text-white">{{ old('description') }}</textarea>
+                @error('description') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
+            </div>
+
+            <div>
+                <label for="status" class="block text-sm font-medium text-gray-300 mb-2">Status</label>
+                <select name="status" id="status" required
+                        class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-red-500 focus:border-red-500 text-sm text-white">
+                    <option value="pending" {{ old('status') == 'pending' ? 'selected' : '' }}>Pending (Menunggu Tindakan)</option>
+                    <option value="resolved" {{ old('status') == 'resolved' ? 'selected' : '' }}>Resolved (Selesai)</option>
+                    <option value="escalated" {{ old('status') == 'escalated' ? 'selected' : '' }}>Escalated (Diteruskan ke Pihak Lain)</option>
+                </select>
+                @error('status') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
             </div>
 
             <div class="flex justify-end space-x-3">

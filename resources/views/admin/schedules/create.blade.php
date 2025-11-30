@@ -34,7 +34,7 @@
                     @foreach ($students as $student)
                         <option value="{{ $student->id }}" 
                             {{ (old('student_id') == $student->id || ($requestData && $requestData->student_id == $student->id)) ? 'selected' : '' }}>
-                            {{ $student->name }} ({{ $student->nis }}) - {{ $student->studentClass->name ?? 'Tanpa Kelas' }}
+                            {{ $student->name }} - {{ $student->schoolClass->name ?? 'Tanpa Kelas' }} (Absen: {{ $student->absen ?? '-' }}) - {{ $student->specialization ?? '-' }}
                         </option>
                     @endforeach
                 </select>

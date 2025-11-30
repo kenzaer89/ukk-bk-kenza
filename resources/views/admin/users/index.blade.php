@@ -53,7 +53,7 @@
                             </td>
                             <td class="px-5 py-5 text-sm text-gray-400">
                                 @if ($user->role == 'student')
-                                    NIS: {{ $user->nis }} | Kelas: {{ $user->studentClass->name ?? 'N/A' }}
+                                    NIS: {{ $user->nis }} | Kelas: {{ $user->schoolClass->name ?? 'N/A' }}
                                 @elseif (in_array($user->role, ['guru_bk', 'wali_kelas', 'admin']))
                                     NIP: {{ $user->nip ?? 'N/A' }}
                                 @elseif ($user->role == 'parent')

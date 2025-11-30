@@ -28,7 +28,7 @@
                         <tr class="hover:bg-gray-700 transition duration-150 border-b border-gray-700">
                             <td class="px-5 py-5 text-sm font-medium text-white">
                                 {{ $session->student->name ?? 'Siswa Terhapus' }}
-                                <span class="text-xs text-gray-400 block">{{ $session->student->studentClass->name ?? '-' }}</span>
+                                <span class="text-xs text-gray-400 block">{{ $session->student->schoolClass->name ?? '-' }}</span>
                             </td>
                             <td class="px-5 py-5 text-sm capitalize">{{ $session->session_type }}</td>
                             <td class="px-5 py-5 text-sm capitalize">

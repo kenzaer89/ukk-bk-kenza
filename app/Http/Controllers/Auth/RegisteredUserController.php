@@ -19,7 +19,8 @@ class RegisteredUserController extends Controller
      */
     public function create(): View
     {
-        return view('auth.register');
+        $classes = \App\Models\SchoolClass::orderBy('name')->get();
+        return view('auth.register', compact('classes'));
     }
 
     /**
@@ -31,20 +32,27 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'role' => ['required', 'string', 'in:student,parent,wali_kelas'],
+            'class_id' => ['nullable', 'required_if:role,student', 'exists:classes,id'],
+            'absen' => ['nullable', 'required_if:role,student', 'string', 'max:10'],
         ]);
+
+        $class = \App\Models\SchoolClass::find($request->class_id);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'role' => $request->role,
+            'class_id' => $request->class_id,
+            'absen' => $request->absen,
+            'specialization' => $class ? $class->jurusan : null,
         ]);
-
-        event(new Registered($user));
 
         Auth::login($user);
 
-        return redirect(route('dashboard', absolute: false));
+        return redirect(route('home', absolute: false));
     }
 }

@@ -28,7 +28,7 @@ class Violation extends Model
     // Relasi ke Siswa
     public function student()
     {
-        return $this->belongsTo(User::class, 'student_id')->with('studentClass');
+        return $this->belongsTo(User::class, 'student_id')->with('schoolClass');
     }
     
     // Relasi ke Aturan Pelanggaran

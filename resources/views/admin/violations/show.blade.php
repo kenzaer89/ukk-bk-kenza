@@ -18,7 +18,7 @@
             </div>
             <div>
                 <p class="text-sm font-medium text-gray-400">Kelas</p>
-                <p class="text-white text-lg">{{ $violation->student->studentClass->name ?? 'N/A' }}</p>
+                <p class="text-white text-lg">{{ $violation->student->schoolClass->name ?? 'N/A' }}</p>
             </div>
         </div>
 

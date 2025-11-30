@@ -16,29 +16,38 @@ class StudentDashboardController extends Controller
 {
     public function index()
     {
-        $user = Auth::user();
-
-        // --- Ringkasan ---
-        $totalSchedules = CounselingSchedule::where('student_id', $user->id)->count();
-        $totalSessions = CounselingSession::whereHas('schedule', fn($q) => $q->where('student_id', $user->id))->count();
-        $totalViolations = Violation::where('student_id', $user->id)->count();
-        $totalAchievements = Achievement::where('student_id', $user->id)->count();
+        $user = Auth::user()->load('schoolClass');
 
         // --- Jadwal & Sesi ---
-        $upcomingSchedules = CounselingSchedule::where('student_id', $user->id)
+        $upcomingSessions = CounselingSchedule::with('teacher')
+            ->where('student_id', $user->id)
             ->whereDate('scheduled_date', '>=', now())
             ->orderBy('scheduled_date', 'asc')
             ->limit(5)
             ->get();
 
-        $recentSessions = CounselingSession::whereHas('schedule', fn($q) => $q->where('student_id', $user->id))
-            ->orderBy('session_date', 'desc')
+        $recentSessions = CounselingSchedule::with('teacher')
+            ->where('student_id', $user->id)
+            ->where(function($query) {
+                $query->where('status', 'completed')
+                      ->orWhere(function($q) {
+                          $q->whereDate('scheduled_date', '<', now())
+                            ->orWhere(function($subQ) {
+                                $subQ->whereDate('scheduled_date', '=', now())
+                                     ->whereTime('end_time', '<', now()->format('H:i:s'));
+                            });
+                      });
+            })
+            ->orderBy('scheduled_date', 'desc')
             ->limit(5)
             ->get();
 
         // --- Pelanggaran & Prestasi ---
-        $recentViolations = Violation::where('student_id', $user->id)
-            ->latest()->limit(5)->get();
+        $recentViolations = Violation::with('rule')
+            ->where('student_id', $user->id)
+            ->latest()
+            ->limit(5)
+            ->get();
 
         $recentAchievements = Achievement::where('student_id', $user->id)
             ->latest()->limit(5)->get();
@@ -47,31 +56,22 @@ class StudentDashboardController extends Controller
         $recentRequests = CounselingRequest::where('student_id', $user->id)
             ->latest()->limit(5)->get();
 
-        // --- Data Chart ---
-        $sessionsChart = CounselingSession::selectRaw('MONTH(session_date) as month, COUNT(*) as total')
-            ->whereHas('schedule', fn($q) => $q->where('student_id', $user->id))
-            ->groupBy('month')->pluck('total', 'month')->toArray();
-
-        $violationsChart = Violation::selectRaw('MONTH(created_at) as month, COUNT(*) as total')
-            ->where('student_id', $user->id)
-            ->groupBy('month')->pluck('total', 'month')->toArray();
-
-        $months = collect(range(1, 12))->map(fn($m) => Carbon::create()->month($m)->translatedFormat('F'));
+        // --- Statistics ---
+        $stats = [
+            'scheduled_sessions' => CounselingSchedule::where('student_id', $user->id)->count(),
+            'pending_requests' => CounselingRequest::where('student_id', $user->id)->where('status', 'pending')->count(),
+            'violations' => Violation::where('student_id', $user->id)->count(),
+            'achievements' => Achievement::where('student_id', $user->id)->count(),
+        ];
 
         return view('student.dashboard', compact(
             'user',
-            'totalSchedules',
-            'totalSessions',
-            'totalViolations',
-            'totalAchievements',
-            'upcomingSchedules',
+            'stats',
+            'upcomingSessions',
             'recentSessions',
             'recentViolations',
             'recentAchievements',
-            'recentRequests',
-            'months',
-            'sessionsChart',
-            'violationsChart'
+            'recentRequests'
         ));
     }
 
@@ -90,5 +90,24 @@ class StudentDashboardController extends Controller
         ]);
 
         return back()->with('success', 'Permintaan konseling berhasil diajukan!');
+    }
+
+    public function violations()
+    {
+        $violations = Violation::with('rule')
+            ->where('student_id', Auth::id())
+            ->latest('violation_date')
+            ->paginate(10);
+
+        return view('student.violations.index', compact('violations'));
+    }
+
+    public function achievements()
+    {
+        $achievements = Achievement::where('student_id', Auth::id())
+            ->latest('achievement_date')
+            ->paginate(10);
+
+        return view('student.achievements.index', compact('achievements'));
     }
 }

@@ -3,49 +3,85 @@
 @section('title', 'Ajukan Permintaan Konseling')
 
 @section('content')
-<div class="p-6">
-    <h1 class="text-3xl font-bold mb-6 text-white">✉️ Ajukan Permintaan Konseling Baru</h1>
+<div class="min-h-screen bg-brand-dark p-6">
+    <!-- Header -->
+    <div class="mb-8">
+        <a href="{{ route('student.counseling_requests.index') }}" class="inline-flex items-center text-brand-teal hover:text-brand-teal/80 transition-colors mb-4">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            Kembali
+        </a>
+        <h1 class="text-3xl font-bold text-brand-light mb-2">Ajukan Permintaan Konseling</h1>
+        <p class="text-brand-light/60">Sampaikan kebutuhan konseling Anda kepada Guru BK</p>
+    </div>
 
-    <div class="bg-gray-800 rounded-xl shadow-lg p-8 max-w-xl">
-        <form action="{{ route('student.counseling_requests.store') }}" method="POST" class="space-y-6">
-            @csrf
-            
-            <div class="bg-blue-900/50 p-4 rounded-lg border-l-4 border-blue-400">
-                <p class="text-sm text-blue-300">Permintaan ini akan diteruskan ke Guru BK. Anda akan menerima notifikasi jika sesi sudah dijadwalkan.</p>
-            </div>
+    <!-- Form Card -->
+    <div class="max-w-2xl">
+        <div class="bg-brand-gray rounded-xl border border-brand-light/10 p-8">
+            @if ($errors->any())
+                <div class="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+                    <ul class="text-red-400 text-sm space-y-1">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
-            <div>
-                <label for="request_reason" class="block text-sm font-medium text-gray-300 mb-2">Jelaskan Alasan Permintaan Konseling Anda (Singkat)</label>
-                <textarea name="request_reason" id="request_reason" rows="4" required
-                          placeholder="Contoh: Saya kesulitan mengatur waktu belajar sehingga nilai saya menurun."
-                          class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:ring-blue-500 focus:border-blue-500">{{ old('request_reason') }}</textarea>
-                @error('request_reason') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
-            </div>
-            
-            <div>
-                <label for="topic_ids" class="block text-sm font-medium text-gray-300 mb-2">Pilih Topik Konseling yang Relevan (Bisa lebih dari satu)</label>
-                <select name="topic_ids[]" id="topic_ids" multiple required
-                        class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:ring-blue-500 focus:border-blue-500 h-40">
-                    @foreach ($topics as $topic)
-                        <option value="{{ $topic->id }}" {{ in_array($topic->id, old('topic_ids', [])) ? 'selected' : '' }}>
-                            {{ $topic->name }}
-                        </option>
-                    @endforeach
-                </select>
-                @error('topic_ids') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
-                @error('topic_ids.*') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
-            </div>
+            <form method="POST" action="{{ route('student.counseling_requests.store') }}" class="space-y-6">
+                @csrf
 
+                <!-- Reason -->
+                <div>
+                    <label for="reason" class="block text-brand-light font-medium mb-2">
+                        Alasan Permintaan Konseling <span class="text-red-500">*</span>
+                    </label>
+                    <textarea 
+                        id="reason" 
+                        name="reason" 
+                        rows="6" 
+                        required
+                        class="w-full px-4 py-3 bg-brand-dark border border-brand-light/10 rounded-lg text-brand-light placeholder-brand-light/40 focus:outline-none focus:border-brand-teal/50 focus:ring-2 focus:ring-brand-teal/20 transition-all"
+                        placeholder="Jelaskan alasan Anda membutuhkan konseling..."
+                    >{{ old('reason') }}</textarea>
+                    <p class="mt-2 text-sm text-brand-light/50">Maksimal 500 karakter</p>
+                </div>
 
-            <div class="flex justify-end space-x-3 pt-4">
-                <a href="{{ route('student.counseling_requests.index') }}" 
-                   class="py-2 px-4 border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-700 transition">Batal</a>
-                <button type="submit" 
-                        class="py-2 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
-                    Kirim Permintaan
-                </button>
-            </div>
-        </form>
+                <!-- Info Box -->
+                <div class="p-4 bg-brand-teal/10 border border-brand-teal/30 rounded-lg">
+                    <div class="flex items-start gap-3">
+                        <svg class="w-5 h-5 text-brand-teal flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <div class="text-sm text-brand-teal">
+                            <p class="font-medium mb-1">Informasi Penting:</p>
+                            <ul class="list-disc list-inside space-y-1 text-brand-teal/80">
+                                <li>Permintaan akan ditinjau oleh Guru BK</li>
+                                <li>Anda akan dihubungi untuk penjadwalan</li>
+                                <li>Semua informasi bersifat rahasia</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="flex gap-4">
+                    <button 
+                        type="submit" 
+                        class="flex-1 px-6 py-3 bg-brand-teal text-brand-dark rounded-lg font-bold hover:bg-[#5a8e91] transition-all shadow-[0_0_20px_rgba(118,171,174,0.3)] hover:shadow-[0_0_30px_rgba(118,171,174,0.5)] transform hover:-translate-y-0.5"
+                    >
+                        Kirim Permintaan
+                    </button>
+                    <a 
+                        href="{{ route('student.counseling_requests.index') }}" 
+                        class="px-6 py-3 bg-brand-dark border border-brand-light/10 text-brand-light rounded-lg font-medium hover:bg-brand-dark/80 hover:border-brand-teal/30 transition-all text-center"
+                    >
+                        Batal
+                    </a>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 @endsection

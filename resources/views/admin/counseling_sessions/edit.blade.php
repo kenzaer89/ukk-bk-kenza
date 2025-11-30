@@ -7,7 +7,7 @@
     <h1 class="text-3xl font-bold mb-6 text-white">🛠️ Tangani Sesi Konseling</h1>
 
     <div class="bg-gray-800 rounded-xl shadow-lg p-8 max-w-3xl">
-        <h2 class="text-2xl font-bold mb-6 text-blue-400 border-b border-gray-700 pb-2">Siswa: {{ $session->student->name ?? 'N/A' }} ({{ $session->student->studentClass->name ?? '-' }})</h2>
+        <h2 class="text-2xl font-bold mb-6 text-blue-400 border-b border-gray-700 pb-2">Siswa: {{ $session->student->name ?? 'N/A' }} ({{ $session->student->schoolClass->name ?? '-' }})</h2>
 
         <form action="{{ route('admin.counseling_sessions.update', $session) }}" method="POST" class="space-y-6">
             @csrf

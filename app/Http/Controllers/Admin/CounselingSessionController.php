@@ -24,11 +24,58 @@ class CounselingSessionController extends Controller
     }
 
     /**
+     * Show the form for creating a new resource.
+     */
+    public function create(Request $request)
+    {
+        $schedule_id = $request->query('schedule_id');
+        $schedule = null;
+        
+        if ($schedule_id) {
+            $schedule = \App\Models\CounselingSchedule::with('student', 'teacher')->find($schedule_id);
+        }
+        
+        $topics = Topic::orderBy('name')->get();
+        $counselors = User::whereIn('role', ['guru_bk', 'admin'])->orderBy('name')->get();
+        $students = User::where('role', 'student')->with('schoolClass')->orderBy('name')->get();
+        
+        return view('admin.counseling_sessions.create', compact('schedule', 'topics', 'counselors', 'students'));
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'student_id' => 'required|exists:users,id',
+            'counselor_id' => 'required|exists:users,id',
+            'schedule_id' => 'nullable|exists:counseling_schedules,id',
+            'session_type' => ['required', Rule::in(['individual', 'group', 'referral'])],
+            'session_date' => 'required|date',
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'required|date_format:H:i|after:start_time',
+            'location' => 'nullable|string|max:191',
+            'notes' => 'nullable|string',
+            'status' => ['required', Rule::in(['requested', 'scheduled', 'completed', 'cancelled'])],
+            'follow_up_required' => 'nullable|boolean',
+            'topic_ids' => 'required|array|min:1',
+            'topic_ids.*' => 'exists:topics,id',
+        ]);
+
+        $session = CounselingSession::create($request->all());
+        $session->topics()->sync($request->topic_ids);
+
+        return redirect()->route('admin.counseling_sessions.index')
+                         ->with('success', 'Sesi konseling berhasil dicatat.');
+    }
+
+    /**
      * Menampilkan detail dan form untuk menjadwalkan/menangani sesi.
      */
     public function edit(CounselingSession $session)
     {
-        $session->load(['student.studentClass', 'counselor', 'topics']);
+        $session->load(['student.schoolClass', 'counselor', 'topics']);
         $topics = Topic::orderBy('name')->get();
         // Hanya Guru BK dan Admin yang dapat menjadi konselor
         $counselors = User::where('role', 'guru_bk')->orWhere('role', 'admin')->orderBy('name')->get();
