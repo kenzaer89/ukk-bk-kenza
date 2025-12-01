@@ -62,7 +62,7 @@
                                 @endif
                             </span>
                             <span class="text-sm text-brand-light/60">
-                                {{ $request->requested_at->format('d M Y, H:i') }}
+                                {{ $request->requested_at->translatedFormat('H:i d F Y') }}
                             </span>
                         </div>
                         

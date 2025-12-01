@@ -84,7 +84,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('activity_logs', [App\Http\Controllers\Admin\ActivityLogController::class, 'index'])->name('activity_logs.index');
         Route::get('activity_logs/{log}', [App\Http\Controllers\Admin\ActivityLogController::class, 'show'])->name('activity_logs.show');
         
-        // Notifikasi
+        // Notifikasi (per admin area - legacy routes, mapped to shared controller)
         Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
         Route::post('notifications/mark-read', [NotificationController::class, 'markAsRead'])->name('notifications.markRead');
         Route::post('notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.markAllRead');
@@ -113,6 +113,13 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('counseling_requests', CounselingRequestController::class)->only(['index', 'create', 'store']);
         Route::post('counseling_requests/{request}/cancel', [CounselingRequestController::class, 'cancel'])->name('counseling_requests.cancel');
     });
+
+    // Shared notification API routes (for AJAX on both admin & student)
+    Route::get('notifications/list', [App\Http\Controllers\NotificationApiController::class, 'index'])->name('notifications.list');
+    Route::get('notifications/count', [App\Http\Controllers\NotificationApiController::class, 'unreadCount'])->name('notifications.count');
+    Route::post('notifications/mark-read', [App\Http\Controllers\NotificationApiController::class, 'markAsRead'])->name('notifications.markread');
+    Route::post('notifications/mark-all-read', [App\Http\Controllers\NotificationApiController::class, 'markAllAsRead'])->name('notifications.markallread');
+    Route::delete('notifications/delete', [App\Http\Controllers\NotificationApiController::class, 'destroy'])->name('notifications.delete');
     
     // --- PARENT ---
     Route::middleware(['role:parent'])->prefix('parent')->name('parent.')->group(function () {

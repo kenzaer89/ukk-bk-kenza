@@ -68,7 +68,7 @@
                             <p class="text-brand-light/80">{{ Str::limit($request->reason, 50) }}</p>
                         </td>
                         <td class="px-6 py-4">
-                            <p class="text-brand-light/80">{{ $request->requested_at->format('d M Y, H:i') }}</p>
+                            <p class="text-brand-light/80">{{ $request->requested_at->translatedFormat('H:i d F Y') }}</p>
                             <p class="text-xs text-brand-light/40">{{ $request->requested_at->diffForHumans() }}</p>
                         </td>
                         <td class="px-6 py-4">

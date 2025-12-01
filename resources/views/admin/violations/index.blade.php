@@ -29,6 +29,7 @@
                         <th class="px-5 py-3">Kelas</th>
                         <th class="px-5 py-3">Jenis Pelanggaran</th>
                         <th class="px-5 py-3">Poin</th>
+                        <th class="px-5 py-3">Status</th>
                         <th class="px-5 py-3">Tanggal</th>
                         <th class="px-5 py-3">Aksi</th>
                     </tr>
@@ -41,6 +42,21 @@
                             <td class="px-5 py-5 text-sm">{{ $violation->student->schoolClass->name ?? 'N/A' }}</td>
                             <td class="px-5 py-5 text-sm text-red-400">{{ $violation->rule->name ?? 'Aturan Dihapus' }}</td>
                             <td class="px-5 py-5 text-sm text-red-500 font-bold">{{ $violation->rule->points ?? 0 }}</td>
+                            <td class="px-5 py-5 text-sm">
+                                @if($violation->status == 'resolved')
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                        Selesai
+                                    </span>
+                                @elseif($violation->status == 'pending')
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                        Menunggu
+                                    </span>
+                                @else
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                        {{ ucfirst($violation->status) }}
+                                    </span>
+                                @endif
+                            </td>
                             <td class="px-5 py-5 text-sm">{{ \Carbon\Carbon::parse($violation->violation_date)->format('d M Y') }}</td>
                             <td class="px-5 py-5 text-sm space-x-2">
                                 <a href="{{ route('admin.violations.edit', $violation) }}" 

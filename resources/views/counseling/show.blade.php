@@ -14,7 +14,7 @@
       <div><strong>Status:</strong> 
         <span class="px-2 py-1 rounded text-xs bg-gray-100">{{ $requestItem->status }}</span>
       </div>
-      <div><strong>Waktu Permintaan:</strong> {{ $requestItem->requested_at }}</div>
+      <div><strong>Waktu Permintaan:</strong> {{ \Carbon\Carbon::parse($requestItem->requested_at)->translatedFormat('H:i d F Y') }}</div>
     </div>
 
     <div class="mt-6 flex gap-3 justify-end">

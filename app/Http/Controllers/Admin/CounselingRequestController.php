@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\CounselingRequest;
 use App\Models\CounselingSchedule;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Notification as AppNotification;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -53,13 +55,13 @@ class CounselingRequestController extends Controller
         // Update request status
         $counseling_request->update([
             'status' => 'approved',
-            'teacher_id' => auth()->id(),
+            'teacher_id' => Auth::id(),
         ]);
 
         // Create schedule
         CounselingSchedule::create([
             'student_id' => $counseling_request->student_id,
-            'teacher_id' => auth()->id(),
+            'teacher_id' => Auth::id(),
             'counseling_request_id' => $counseling_request->id,
             'scheduled_date' => $request->scheduled_date,
             'start_time' => $request->start_time,
@@ -67,6 +69,13 @@ class CounselingRequestController extends Controller
             'location' => $request->location,
             'notes' => $request->notes,
             'status' => 'scheduled',
+        ]);
+
+        // Notify the student that their request has been approved
+        AppNotification::create([
+            'user_id' => $counseling_request->student_id,
+            'message' => 'Permintaan konseling Anda telah disetujui. Jadwal: ' . $request->scheduled_date . ' ' . $request->start_time,
+            'status' => 'unread',
         ]);
 
         return redirect()->route('admin.counseling_requests.index')
@@ -84,8 +93,15 @@ class CounselingRequestController extends Controller
 
         $counseling_request->update([
             'status' => 'rejected',
-            'teacher_id' => auth()->id(),
+            'teacher_id' => Auth::id(),
             'notes' => $request->rejection_reason,
+        ]);
+
+        // Notify the student that their request has been rejected
+        AppNotification::create([
+            'user_id' => $counseling_request->student_id,
+            'message' => 'Permintaan konseling Anda ditolak. Alasan: ' . ($request->rejection_reason ?? '-'),
+            'status' => 'unread',
         ]);
 
         return redirect()->route('admin.counseling_requests.index')
@@ -103,7 +119,7 @@ class CounselingRequestController extends Controller
 
         $counseling_request->update([
             'status' => 'pending',
-            'teacher_id' => auth()->id(),
+            'teacher_id' => Auth::id(),
             'notes' => $request->postpone_reason,
         ]);
 

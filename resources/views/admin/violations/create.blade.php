@@ -29,13 +29,29 @@
                 <select name="rule_id" id="rule_id" required
                         class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-red-500 focus:border-red-500 text-sm text-white">
                     <option value="">-- Pilih Aturan Pelanggaran --</option>
+                    <option value="custom" {{ old('rule_id') == 'custom' ? 'selected' : '' }}>-- Custom: Buat Aturan Baru --</option>
                     @foreach ($rules as $rule)
-                        <option value="{{ $rule->id }}" {{ old('rule_id') == $rule->id ? 'selected' : '' }}>
-                            {{ $rule->name }} (Poin: -{{ $rule->points }})
+                        <option value="{{ $rule->id }}" data-category="{{ $rule->category ?? '' }}" data-points="{{ $rule->points }}" data-name="{{ $rule->name }}" {{ old('rule_id') == $rule->id ? 'selected' : '' }}>
+                            {{ $rule->name }} ({{ $rule->points }} poin)
                         </option>
                     @endforeach
                 </select>
                 @error('rule_id') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
+            </div>
+            
+            <div id="custom-rule-fields" class="hidden">
+                <div>
+                    <label for="custom_rule_name" class="block text-sm font-medium text-gray-300 mb-2">Nama Aturan Baru</label>
+                    <input type="text" name="custom_rule_name" id="custom_rule_name" value="{{ old('custom_rule_name') }}"
+                           class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-red-500 focus:border-red-500 text-sm text-white">
+                    @error('custom_rule_name') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
+                </div>
+                <div class="mt-3">
+                    <label for="custom_points" class="block text-sm font-medium text-gray-300 mb-2">Poin (masukkan angka, mis: 10 akan otomatis menjadi -10 dan dikurangi)</label>
+                    <input type="number" name="custom_points" id="custom_points" value="{{ old('custom_points') }}"
+                           class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-red-500 focus:border-red-500 text-sm text-white">
+                    @error('custom_points') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
+                </div>
             </div>
             
             <div>
@@ -74,4 +90,33 @@
         </form>
     </div>
 </div>
+<script>
+    (function() {
+        const ruleSelect = document.getElementById('rule_id');
+        const customFields = document.getElementById('custom-rule-fields');
+        function toggleCustom() {
+            if (!ruleSelect || !customFields) return;
+            const selectedOpt = ruleSelect.options[ruleSelect.selectedIndex];
+            const isCustomCategory = selectedOpt && selectedOpt.dataset && selectedOpt.dataset.category === 'custom';
+            if (ruleSelect.value === 'custom' || isCustomCategory) {
+                customFields.classList.remove('hidden');
+                // prepopulate if category custom
+                const nameInput = document.getElementById('custom_rule_name');
+                const pointsInput = document.getElementById('custom_points');
+                if (isCustomCategory && selectedOpt.dataset.name) {
+                    if (nameInput && !nameInput.value) nameInput.value = selectedOpt.dataset.name;
+                }
+                if (isCustomCategory && selectedOpt.dataset.points) {
+                    if (pointsInput && !pointsInput.value) pointsInput.value = Math.abs(selectedOpt.dataset.points);
+                }
+            } else {
+                customFields.classList.add('hidden');
+            }
+        }
+        if (ruleSelect) {
+            ruleSelect.addEventListener('change', toggleCustom);
+            toggleCustom();
+        }
+    })();
+</script>
 @endsection

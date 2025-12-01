@@ -25,7 +25,7 @@
         <tr class="border-t">
           <td class="p-2">{{ $r->id }}</td>
           <td class="p-2">{{ $r->student->name ?? '-' }}</td>
-          <td class="p-2">{{ \Carbon\Carbon::parse($r->requested_at)->translatedFormat('d M Y H:i') }}</td>
+          <td class="p-2">{{ \Carbon\Carbon::parse($r->requested_at)->translatedFormat('H:i d F Y') }}</td>
           <td class="p-2">{{ Str::limit($r->reason, 80) }}</td>
           <td class="p-2">{{ $r->status }}</td>
           <td class="p-2">

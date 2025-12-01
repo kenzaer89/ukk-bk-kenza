@@ -18,6 +18,7 @@ class AchievementSeeder extends Seeder
             'student_id' => $student->id,
             'name' => 'Juara 1 Lomba Matematika',
             'level' => 'school',
+            'point' => 10,
             'achievement_date' => now()
         ]);
     }

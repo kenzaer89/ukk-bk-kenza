@@ -28,7 +28,7 @@ class CounselingScheduleSeeder extends Seeder
             return;
         }
 
-        // Buat jadwal konseling
+        // Buat jadwal konseling (Mendatang)
         CounselingSchedule::create([
             'counseling_request_id' => $request->id,
             'student_id' => $student->id,
@@ -39,6 +39,19 @@ class CounselingScheduleSeeder extends Seeder
             'status' => 'scheduled',
             'student_notes' => 'Persiapan konseling akademik',
             'admin_notes' => 'Dijadwalkan oleh guru BK',
+        ]);
+
+        // Buat jadwal konseling (Riwayat / Selesai)
+        CounselingSchedule::create([
+            'counseling_request_id' => $request->id,
+            'student_id' => $student->id,
+            'teacher_id' => $teacher->id,
+            'scheduled_date' => Carbon::now()->subDays(5)->toDateString(),
+            'start_time' => '10:00:00',
+            'end_time' => '11:00:00',
+            'status' => 'completed',
+            'student_notes' => 'Konseling masalah belajar',
+            'admin_notes' => 'Sesi selesai dengan baik',
         ]);
     }
 }

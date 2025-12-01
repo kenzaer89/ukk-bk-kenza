@@ -21,7 +21,7 @@
             <div>
                 <p class="text-brand-light/60 text-sm uppercase tracking-wider font-semibold mb-1">Total Poin Dikurangi</p>
                 <p class="text-3xl font-bold text-red-500">
-                    -{{ $violations->sum(function($v) { return $v->rule->points; }) }}
+                    {{ $violations->sum(function($v) { return $v->rule->points; }) }}
                 </p>
             </div>
             <div class="text-right">
@@ -62,7 +62,7 @@
                             <td class="p-4 text-brand-light/80">{{ $violation->description ?? '-' }}</td>
                             <td class="p-4 text-right">
                                 <span class="px-2 py-1 rounded text-xs font-bold bg-red-500/20 text-red-500">
-                                    -{{ $violation->rule->points }}
+                                    {{ $violation->rule->points }}
                                 </span>
                             </td>
                             <td class="p-4">

@@ -26,19 +26,10 @@ class StudentDashboardController extends Controller
             ->limit(5)
             ->get();
 
-        $recentSessions = CounselingSchedule::with('teacher')
+        $recentSessions = CounselingSession::with('counselor')
             ->where('student_id', $user->id)
-            ->where(function($query) {
-                $query->where('status', 'completed')
-                      ->orWhere(function($q) {
-                          $q->whereDate('scheduled_date', '<', now())
-                            ->orWhere(function($subQ) {
-                                $subQ->whereDate('scheduled_date', '=', now())
-                                     ->whereTime('end_time', '<', now()->format('H:i:s'));
-                            });
-                      });
-            })
-            ->orderBy('scheduled_date', 'desc')
+            ->where('status', 'completed')
+            ->orderBy('session_date', 'desc')
             ->limit(5)
             ->get();
 

@@ -2,14 +2,12 @@
 
 namespace App\Models;
 
-// Tambahkan Notifiable
-use Illuminate\Notifications\Notifiable; 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Model;
 
-class User extends Authenticatable
+class Notification extends Model
 {
-    use HasFactory, Notifiable; // <<< PASTIKAN BARIS INI ADA
+    use HasFactory;
 
     /**
      * The attributes that are mass assignable.
@@ -17,21 +15,9 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'role', // Penting untuk filter notifikasi
-        'nisn', // Jika ada
-    ];
-
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
-    protected $hidden = [
-        'password',
-        'remember_token',
+        'user_id',
+        'message',
+        'status',
     ];
 
     /**
@@ -40,7 +26,24 @@ class User extends Authenticatable
      * @var array<string, string>
      */
     protected $casts = [
-        'email_verified_at' => 'datetime',
-        'password' => 'hashed',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
+
+    /**
+     * Get the user that owns the notification.
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Mark this notification as read.
+     */
+    public function markAsRead()
+    {
+        $this->status = 'read';
+        $this->save();
+    }
 }

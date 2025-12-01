@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="id">
-<head>
+    <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'BK Dashboard')</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
@@ -150,9 +151,75 @@
     </aside>
 
     <main class="content">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                {{-- Optional header placeholder: title is per-page --}}
+            </div>
+            <div class="flex items-center gap-4">
+                {{-- Notification dropdown --}}
+                @auth
+                    @include('components.notification_dropdown')
+                @endauth
+            </div>
+        </div>
         @yield('content')
     </main>
     
     @stack('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Attach behavior to all forms that have start_time and end_time inputs
+            document.querySelectorAll('form').forEach(function (form) {
+                const startInput = form.querySelector('input[name="start_time"]');
+                const endInput = form.querySelector('input[name="end_time"]');
+                if (!startInput || !endInput) return;
+
+                // Add id if not present to reference
+                if (!startInput.id) startInput.id = 'start_time_' + Math.random().toString(36).substr(2, 9);
+                if (!endInput.id) endInput.id = 'end_time_' + Math.random().toString(36).substr(2, 9);
+
+                // Create a helper message element for the end time
+                let helpEl = document.createElement('p');
+                helpEl.className = 'mt-1 text-xs text-red-400 hidden';
+                helpEl.textContent = 'Isi waktu mulai terlebih dahulu.';
+                endInput.parentNode.appendChild(helpEl);
+
+                function updateEndState() {
+                    if (!startInput.value) {
+                        endInput.disabled = true;
+                        endInput.classList.add('opacity-60', 'cursor-not-allowed');
+                        helpEl.classList.remove('hidden');
+                    } else {
+                        endInput.disabled = false;
+                        endInput.classList.remove('opacity-60', 'cursor-not-allowed');
+                        helpEl.classList.add('hidden');
+                        // Set minimum selectable time to start time
+                        try { endInput.min = startInput.value; } catch(e) {}
+                        // If an end time is already present and <= start time, clear it
+                        if (endInput.value && endInput.value <= startInput.value) {
+                            endInput.value = '';
+                        }
+                    }
+                }
+
+                // Initialize state on page load
+                updateEndState();
+
+                // When start changes, update end
+                startInput.addEventListener('change', updateEndState);
+                startInput.addEventListener('input', updateEndState);
+
+                // When focusing end_time, if disabled, focus start and show a temporary tooltip
+                endInput.addEventListener('focus', function (e) {
+                    if (endInput.disabled) {
+                        e.preventDefault();
+                        // small UX: focus start field and scroll into view
+                        startInput.focus();
+                        startInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>

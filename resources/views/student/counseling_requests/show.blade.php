@@ -22,7 +22,7 @@
             </div>
             <div>
                 <p class="text-sm font-medium text-gray-400">Diajukan Pada</p>
-                <p class="text-white text-lg">{{ $request->requested_at->format('d F Y, H:i') }}</p>
+                <p class="text-white text-lg">{{ $request->requested_at->translatedFormat('H:i d F Y') }}</p>
             </div>
         </div>
 

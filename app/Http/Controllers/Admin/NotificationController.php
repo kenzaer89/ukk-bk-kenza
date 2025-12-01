@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Notification as AppNotification;
 
 class NotificationController extends Controller
 {
@@ -17,14 +18,8 @@ class NotificationController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        // Ambil semua notifikasi yang belum dibaca (unread)
-        // Ini adalah relasi yang disediakan oleh trait Notifiable
-        $unreadNotifications = $user->unreadNotifications;
-
-        // Ambil 10 notifikasi yang sudah dibaca (read) terbaru
-        $readNotifications = $user->readNotifications()->latest()->take(10)->get();
-
-        // Gabungkan keduanya untuk ditampilkan di halaman index
+        $unreadNotifications = AppNotification::where('user_id', $user->id)->where('status', 'unread')->latest()->get();
+        $readNotifications = AppNotification::where('user_id', $user->id)->where('status', 'read')->latest()->take(10)->get();
         $notifications = $unreadNotifications->merge($readNotifications);
 
         return view('admin.notifications.index', compact('notifications', 'unreadNotifications'));
@@ -38,13 +33,11 @@ class NotificationController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        // Validasi ID notifikasi
         $request->validate([
-            'id' => 'required|string', // ID notifikasi (UUID)
+            'id' => 'required|integer',
         ]);
 
-        // Cari notifikasi berdasarkan ID yang dimiliki oleh pengguna yang sedang login
-        $notification = $user->notifications()->where('id', $request->id)->first();
+        $notification = AppNotification::where('user_id', $user->id)->where('id', $request->id)->first();
 
         if ($notification) {
             $notification->markAsRead();
@@ -61,10 +54,8 @@ class NotificationController extends Controller
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
-        
-        $count = $user->unreadNotifications->count();
-        // Mass action untuk menandai semua notifikasi yang belum dibaca
-        $user->unreadNotifications->markAsRead();
+        $count = AppNotification::where('user_id', $user->id)->where('status', 'unread')->count();
+        AppNotification::where('user_id', $user->id)->where('status', 'unread')->update(['status' => 'read']);
 
         return response()->json(['success' => true, 'message' => "$count notifikasi berhasil ditandai sudah dibaca."], 200);
     }
@@ -76,14 +67,8 @@ class NotificationController extends Controller
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
-
-        // Validasi ID notifikasi
-        $request->validate([
-            'id' => 'required|string', // ID notifikasi (UUID)
-        ]);
-
-        // Hapus notifikasi
-        $deleted = $user->notifications()->where('id', $request->id)->delete();
+        $request->validate(['id' => 'required|integer']);
+        $deleted = AppNotification::where('user_id', $user->id)->where('id', $request->id)->delete();
 
         if ($deleted) {
             return response()->json(['success' => true, 'message' => 'Notifikasi berhasil dihapus.'], 200);
@@ -99,9 +84,7 @@ class NotificationController extends Controller
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
-
-        $count = $user->unreadNotifications->count();
-
+        $count = AppNotification::where('user_id', $user->id)->where('status', 'unread')->count();
         return response()->json(['count' => $count]);
     }
 }

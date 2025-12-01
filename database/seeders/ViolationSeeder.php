@@ -19,8 +19,10 @@ class ViolationSeeder extends Seeder
         Violation::create([
             'student_id' => $student->id,
             'rule_id' => $rule->id,
+            'teacher_id' => User::where('role', 'teacher')->first()->id ?? null,
             'violation_date' => now(),
-            'notes' => 'Siswa terlambat masuk kelas'
+            'description' => 'Siswa terlambat masuk kelas',
+            'status' => 'pending'
         ]);
     }
 }

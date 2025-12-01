@@ -172,15 +172,15 @@
                     <div class="bg-brand-dark/50 border border-brand-light/5 rounded-lg p-4 hover:border-brand-teal/30 transition-all">
                         <div class="flex justify-between items-start mb-2">
                             <div>
-                                <p class="font-semibold text-brand-light">{{ $session->scheduled_date->format('d M Y') }}</p>
-                                <p class="text-sm text-brand-light/60">{{ $session->start_time }} - {{ $session->end_time }}</p>
+                                <p class="font-semibold text-brand-light">{{ $session->session_date ? $session->session_date->format('d M Y') : '-' }}</p>
+                                <p class="text-sm text-brand-light/60">{{ $session->start_time ?? '-' }} - {{ $session->end_time ?? '-' }}</p>
                             </div>
                             <span class="px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-500">
                                 Selesai
                             </span>
                         </div>
-                        @if($session->teacher)
-                        <p class="text-sm text-brand-light/70">Dengan: {{ $session->teacher->name }}</p>
+                        @if($session->counselor)
+                        <p class="text-sm text-brand-light/70">Dengan: {{ $session->counselor->name }}</p>
                         @endif
                     </div>
                     @endforeach
