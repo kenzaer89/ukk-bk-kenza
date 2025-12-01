@@ -40,6 +40,16 @@ class UserSeeder extends Seeder
             ]
         );
 
+        // Tambah 1 akun orang tua default
+        User::firstOrCreate(
+            ['email' => 'orangtua@bk.test'],
+            [
+                'name' => 'Orang Tua Contoh',
+                'role' => 'parent',
+                'password' => Hash::make('password'),
+            ]
+        );
+
         // Tambah siswa jika belum ada sama sekali
         if (User::where('role', 'student')->count() == 0) {
             User::factory(10)->create(['role' => 'student']);

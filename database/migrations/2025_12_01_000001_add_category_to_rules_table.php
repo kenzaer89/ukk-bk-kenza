@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('rules', function (Blueprint $table) {
-            $table->string('category')->nullable()->after('description');
-        });
+        if (!Schema::hasColumn('rules', 'category')) {
+            Schema::table('rules', function (Blueprint $table) {
+                $table->string('category')->nullable()->after('description');
+            });
+        }
     }
 
     /**
@@ -21,8 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('rules', function (Blueprint $table) {
-            $table->dropColumn('category');
-        });
+        if (Schema::hasColumn('rules', 'category')) {
+            Schema::table('rules', function (Blueprint $table) {
+                $table->dropColumn('category');
+            });
+        }
     }
 };

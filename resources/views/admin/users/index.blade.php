@@ -62,9 +62,7 @@
                                     -
                                 @endif
                             </td>
-                            <td class="px-5 py-5 text-sm space-x-2">
-                                <a href="{{ route('admin.users.edit', $user) }}" 
-                                   class="text-yellow-400 hover:text-yellow-300">Edit</a>
+                            <td class="px-5 py-5 text-sm">
                                 <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="inline">
                                     @csrf
                                     @method('DELETE')

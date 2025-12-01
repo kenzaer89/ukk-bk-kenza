@@ -164,21 +164,49 @@
                         </div>
                     </div>
 
+                    <!-- Parent Specific Fields -->
+                    <div id="parent-fields" class="space-y-5 hidden">
+                        <!-- Child Selection -->
+                        <div>
+                            <label for="student_id" class="block text-brand-light font-medium mb-2">Pilih Nama Anak</label>
+                            <select 
+                                id="student_id" 
+                                name="student_id" 
+                                class="w-full px-4 py-3 bg-brand-dark border border-brand-light/10 rounded-lg text-brand-light focus:outline-none focus:border-brand-teal/50 focus:ring-2 focus:ring-brand-teal/20 transition-all"
+                            >
+                                <option value="">-- Pilih Anak --</option>
+                                @foreach($students as $student)
+                                    <option value="{{ $student->id }}" {{ old('student_id') == $student->id ? 'selected' : '' }}>
+                                        {{ $student->name }} ({{ $student->schoolClass->name ?? 'Tanpa Kelas' }})
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('student_id')
+                                <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+
                     <script>
                         document.addEventListener('DOMContentLoaded', function() {
                             const roleSelect = document.getElementById('role');
                             const studentFields = document.getElementById('student-fields');
+                            const parentFields = document.getElementById('parent-fields');
                             
-                            function toggleStudentFields() {
+                            function toggleFields() {
+                                // Reset hidden states
+                                studentFields.classList.add('hidden');
+                                parentFields.classList.add('hidden');
+
                                 if (roleSelect.value === 'student') {
                                     studentFields.classList.remove('hidden');
-                                } else {
-                                    studentFields.classList.add('hidden');
+                                } else if (roleSelect.value === 'parent') {
+                                    parentFields.classList.remove('hidden');
                                 }
                             }
 
-                            roleSelect.addEventListener('change', toggleStudentFields);
-                            toggleStudentFields(); // Run on load
+                            roleSelect.addEventListener('change', toggleFields);
+                            toggleFields(); // Run on load
                         });
                     </script>
 

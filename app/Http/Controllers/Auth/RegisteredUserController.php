@@ -20,7 +20,8 @@ class RegisteredUserController extends Controller
     public function create(): View
     {
         $classes = \App\Models\SchoolClass::orderBy('name')->get();
-        return view('auth.register', compact('classes'));
+        $students = \App\Models\User::where('role', 'student')->orderBy('name')->get();
+        return view('auth.register', compact('classes', 'students'));
     }
 
     /**
@@ -37,6 +38,7 @@ class RegisteredUserController extends Controller
             'role' => ['required', 'string', 'in:student,parent,wali_kelas'],
             'class_id' => ['nullable', 'required_if:role,student', 'exists:classes,id'],
             'absen' => ['nullable', 'required_if:role,student', 'string', 'max:10'],
+            'student_id' => ['nullable', 'required_if:role,parent', 'exists:users,id'],
         ]);
 
         $class = \App\Models\SchoolClass::find($request->class_id);
@@ -50,6 +52,13 @@ class RegisteredUserController extends Controller
             'absen' => $request->absen,
             'specialization' => $class ? $class->jurusan : null,
         ]);
+
+        if ($request->role === 'parent' && $request->student_id) {
+            \App\Models\ParentStudent::create([
+                'parent_id' => $user->id,
+                'student_id' => $request->student_id,
+            ]);
+        }
 
         Auth::login($user);
 

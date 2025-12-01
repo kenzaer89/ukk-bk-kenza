@@ -10,6 +10,7 @@ class ParentStudent extends Model
     use HasFactory;
 
     protected $table = 'parent_student';
+    public $timestamps = false;
 
     protected $fillable = [
         'parent_id',

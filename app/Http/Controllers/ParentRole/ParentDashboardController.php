@@ -11,16 +11,28 @@ class ParentDashboardController extends Controller
 {
     public function index()
     {
-        $pid = session('user.id');
+        $pid = \Illuminate\Support\Facades\Auth::id();
         $children = ParentStudent::where('parent_id',$pid)->with('student')->get();
 
         $data = [];
         foreach($children as $child){
             $data[] = [
                 'student'=>$child->student,
-                'violations'=>Violation::where('student_id',$child->student_id)->latest('occurred_at')->limit(3)->get(),
+                'violations'=>Violation::where('student_id',$child->student_id)
+                    ->with(['rule', 'student.schoolClass', 'teacher'])
+                    ->latest('violation_date')
+                    ->limit(3)
+                    ->get(),
+                'achievements'=>\App\Models\Achievement::where('student_id',$child->student_id)
+                    ->with(['student.schoolClass', 'teacher'])
+                    ->latest('achievement_date')
+                    ->limit(3)
+                    ->get(),
                 'sessions'=>CounselingSession::whereHas('schedule', fn($q)=>$q->where('student_id',$child->student_id))
-                              ->latest('session_date')->limit(3)->get()
+                    ->with(['student.schoolClass', 'counselor', 'schedule'])
+                    ->latest('session_date')
+                    ->limit(3)
+                    ->get()
             ];
         }
 

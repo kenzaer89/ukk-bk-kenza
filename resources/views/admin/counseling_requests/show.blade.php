@@ -40,6 +40,10 @@
                             <p class="text-brand-light font-medium text-lg">{{ $counseling_request->student->schoolClass->name ?? '-' }}</p>
                         </div>
                         <div class="space-y-1">
+                            <p class="text-xs text-brand-light/60 uppercase tracking-wider font-semibold">No. Absen</p>
+                            <p class="text-brand-light font-medium text-lg">{{ $counseling_request->student->absen ?? '-' }}</p>
+                        </div>
+                        <div class="space-y-1">
                             <p class="text-xs text-brand-light/60 uppercase tracking-wider font-semibold">Email</p>
                             <p class="text-brand-light">{{ $counseling_request->student->email }}</p>
                         </div>

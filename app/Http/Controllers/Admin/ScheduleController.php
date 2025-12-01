@@ -29,7 +29,7 @@ class ScheduleController extends Controller
      */
     public function create(Request $request)
     {
-        $students = User::students()->with('schoolClass')->orderBy('name')->get(); 
+        $students = User::where('role', 'student')->with('schoolClass')->orderBy('name')->get(); 
         $teachers = User::whereIn('role', ['guru_bk', 'admin'])->orderBy('name')->get();
         
         // Cek apakah ada request_id yang dilewatkan (dari persetujuan permintaan)
@@ -56,7 +56,10 @@ class ScheduleController extends Controller
             'scheduled_date' => 'required|date',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
+            'location' => 'nullable|string|max:255',
             'counseling_request_id' => 'nullable|exists:counseling_requests,id',
+        ], [
+            'end_time.after' => 'Waktu selesai harus lebih besar dari waktu mulai.',
         ]);
         
         // 1. Simpan Jadwal Konseling
@@ -66,6 +69,7 @@ class ScheduleController extends Controller
             'scheduled_date' => $request->scheduled_date,
             'start_time' => $request->start_time,
             'end_time' => $request->end_time,
+            'location' => $request->location,
             'counseling_request_id' => $request->counseling_request_id,
             'status' => 'scheduled',
         ]);
@@ -87,7 +91,7 @@ class ScheduleController extends Controller
      */
     public function edit(CounselingSchedule $schedule)
     {
-        $students = User::students()->with('schoolClass')->orderBy('name')->get();
+        $students = User::where('role', 'student')->with('schoolClass')->orderBy('name')->get();
         $teachers = User::whereIn('role', ['guru_bk', 'admin'])->orderBy('name')->get();
         
         return view('admin.schedules.edit', compact('schedule', 'students', 'teachers'));
@@ -104,6 +108,9 @@ class ScheduleController extends Controller
             'scheduled_date' => 'required|date',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
+            'location' => 'nullable|string|max:255',
+        ], [
+            'end_time.after' => 'Waktu selesai harus lebih besar dari waktu mulai.',
         ]);
 
         $schedule->update($request->all());

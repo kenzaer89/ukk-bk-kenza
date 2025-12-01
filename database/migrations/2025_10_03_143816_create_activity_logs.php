@@ -11,12 +11,13 @@ return new class extends Migration
         Schema::create('activity_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null'); // Siapa yang melakukan
-            $table->string('log_type'); // Contoh: 'Violation', 'User', 'Counseling'
+            $table->string('log_type')->nullable(); // Contoh: 'Violation', 'User', 'Counseling'
             $table->string('action'); // Contoh: 'created', 'updated', 'deleted', 'scheduled'
-            $table->morphs('loggable'); // Relasi polimorfik ke objek yang diubah (e.g., Violation, User)
+            $table->nullableMorphs('loggable'); // Relasi polimorfik ke objek yang diubah (e.g., Violation, User)
             $table->text('old_data')->nullable(); // Data sebelum perubahan (untuk update)
             $table->text('new_data')->nullable(); // Data setelah perubahan
             $table->string('ip_address', 45)->nullable();
+            $table->string('user_agent')->nullable();
             $table->timestamps();
             
             // Indeks untuk pencarian cepat

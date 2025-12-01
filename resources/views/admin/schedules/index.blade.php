@@ -32,6 +32,7 @@
                         <th class="px-5 py-3">Tanggal & Waktu</th>
                         <th class="px-5 py-3">Siswa</th>
                         <th class="px-5 py-3">Guru BK</th>
+                        <th class="px-5 py-3">Lokasi</th>
                         <th class="px-5 py-3">Status</th>
                         <th class="px-5 py-3">Dari Permintaan</th>
                         <th class="px-5 py-3">Aksi</th>
@@ -46,6 +47,9 @@
                             </td>
                             <td class="px-5 py-5 text-sm">{{ $schedule->student->name ?? 'N/A' }}</td>
                             <td class="px-5 py-5 text-sm">{{ $schedule->teacher->name ?? 'N/A' }}</td>
+                            <td class="px-5 py-5 text-sm text-gray-300">
+                                {{ $schedule->location ?? '-' }}
+                            </td>
                             <td class="px-5 py-5 text-sm">
                                 @if ($schedule->session)
                                     <span class="text-green-400 font-bold">SELESAI</span>
@@ -78,7 +82,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-5 py-5 text-center text-gray-400 italic">Belum ada jadwal konseling yang dibuat.</td>
+                            <td colspan="7" class="px-5 py-5 text-center text-gray-400 italic">Belum ada jadwal konseling yang dibuat.</td>
                         </tr>
                     @endforelse
                 </tbody>

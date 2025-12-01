@@ -22,23 +22,26 @@ class ActivityLogSeeder extends Seeder
             DB::table('activity_logs')->insert([
                 [
                     'user_id'    => $user->id,
-                    'activity'   => 'Login ke sistem',
+                    'action'     => 'Login ke sistem',
                     'ip_address' => '192.168.1.1',
                     'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+                    'log_type'   => 'Auth',
                     'created_at' => now(),
                 ],
                 [
                     'user_id'    => $user->id,
-                    'activity'   => 'Mengubah profil',
+                    'action'     => 'Mengubah profil',
                     'ip_address' => '192.168.1.1',
                     'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+                    'log_type'   => 'User',
                     'created_at' => now(),
                 ],
                 [
                     'user_id'    => $user->id,
-                    'activity'   => 'Melihat laporan bulanan',
+                    'action'     => 'Melihat laporan bulanan',
                     'ip_address' => '192.168.1.1',
                     'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+                    'log_type'   => 'Report',
                     'created_at' => now(),
                 ],
             ]);
@@ -47,9 +50,10 @@ class ActivityLogSeeder extends Seeder
         // Contoh log untuk user null (guest / sistem)
         DB::table('activity_logs')->insert([
             'user_id'    => null,
-            'activity'   => 'Sistem otomatis menjalankan backup',
+            'action'     => 'Sistem otomatis menjalankan backup',
             'ip_address' => null,
             'user_agent' => null,
+            'log_type'   => 'System',
             'created_at' => now(),
         ]);
     }

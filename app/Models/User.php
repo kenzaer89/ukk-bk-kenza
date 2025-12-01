@@ -95,4 +95,18 @@ class User extends Authenticatable
     {
         return $this->belongsTo(SchoolClass::class, 'class_id');
     }
+
+    /**
+     * Many-to-many relationship: parent users to their students
+     * Used for parent role to manage their children/students
+     */
+    public function students()
+    {
+        return $this->belongsToMany(
+            User::class,
+            'parent_student',
+            'parent_id',
+            'student_id'
+        );
+    }
 }

@@ -98,7 +98,11 @@
                     <label for="location" class="block text-sm font-medium text-gray-300 mb-2">Lokasi Sesi</label>
                     <input type="text" name="location" id="location" value="{{ old('location', $schedule ? $schedule->location : '') }}"
                            placeholder="Contoh: Ruang BK 1"
-                           class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white">
+                           {{ $schedule && $schedule->location ? 'readonly' : '' }}
+                           class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white {{ $schedule && $schedule->location ? 'cursor-not-allowed opacity-75' : '' }}">
+                    @if($schedule && $schedule->location)
+                        <p class="text-xs text-gray-400 mt-1">📍 Lokasi dari jadwal konseling</p>
+                    @endif
                     @error('location') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
                 </div>
             </section>

@@ -18,6 +18,7 @@ class ActivityLog extends Model
         'old_data',
         'new_data',
         'ip_address',
+        'user_agent',
     ];
     
     // Relasi ke pengguna yang melakukan aksi

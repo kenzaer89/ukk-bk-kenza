@@ -73,8 +73,9 @@ class CounselingSessionController extends Controller
     /**
      * Menampilkan detail dan form untuk menjadwalkan/menangani sesi.
      */
-    public function edit(CounselingSession $session)
+    public function edit(CounselingSession $counselingSession)
     {
+        $session = $counselingSession; // Alias untuk compatibility dengan view
         $session->load(['student.schoolClass', 'counselor', 'topics']);
         $topics = Topic::orderBy('name')->get();
         // Hanya Guru BK dan Admin yang dapat menjadi konselor
@@ -86,8 +87,10 @@ class CounselingSessionController extends Controller
     /**
      * Memperbarui/menangani sesi konseling.
      */
-    public function update(Request $request, CounselingSession $session)
+    public function update(Request $request, CounselingSession $counselingSession)
     {
+        $session = $counselingSession; // Alias
+        
         $request->validate([
             'counselor_id' => 'required|exists:users,id',
             'session_type' => ['required', Rule::in(['individual', 'group', 'referral'])],

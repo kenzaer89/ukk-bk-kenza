@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 
 class RoleMiddleware
 {
-    public function handle(Request $request, Closure $next, $role)
+    public function handle(Request $request, Closure $next, ...$roles)
     {
         if (!Auth::check()) {
             return redirect('/login');
@@ -16,7 +16,7 @@ class RoleMiddleware
 
         $user = Auth::user();
 
-        if ($user->role !== $role) {
+        if (!in_array($user->role, $roles)) {
             abort(403, 'Akses ditolak.');
         }
 

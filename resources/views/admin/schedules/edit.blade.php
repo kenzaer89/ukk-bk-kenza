@@ -63,9 +63,17 @@
                 <div>
                     <label for="end_time" class="block text-sm font-medium text-gray-300 mb-2">Selesai Pukul</label>
                     <input type="time" name="end_time" id="end_time" value="{{ old('end_time', \Carbon\Carbon::parse($schedule->end_time)->format('H:i')) }}" required
-                        class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-sm text-white">
+                        class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-sm text-white disabled:opacity-50 disabled:cursor-not-allowed">
                     @error('end_time') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
                 </div>
+            </div>
+
+            <div>
+                <label for="location" class="block text-sm font-medium text-gray-300 mb-2">Lokasi</label>
+                <input type="text" name="location" id="location" value="{{ old('location', $schedule->location) }}" 
+                    placeholder="Contoh: Ruang BK, Ruang Konseling 1"
+                    class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-sm text-white">
+                @error('location') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
             </div>
 
             <div class="flex justify-end space-x-3 pt-4">
@@ -79,4 +87,67 @@
         </form>
     </div>
 </div>
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const startTimeInput = document.getElementById('start_time');
+        const endTimeInput = document.getElementById('end_time');
+        const form = startTimeInput.closest('form');
+
+        // Function to toggle end_time field
+        function toggleEndTime() {
+            if (startTimeInput.value && startTimeInput.value.trim() !== '') {
+                endTimeInput.disabled = false;
+                // Set minimum value for end_time to be greater than start_time
+                endTimeInput.min = startTimeInput.value;
+            } else {
+                endTimeInput.disabled = true;
+                endTimeInput.value = '';
+                endTimeInput.removeAttribute('min');
+            }
+        }
+
+        // Function to validate time difference
+        function validateTimeDifference() {
+            if (startTimeInput.value && endTimeInput.value) {
+                if (endTimeInput.value <= startTimeInput.value) {
+                    endTimeInput.setCustomValidity('Waktu selesai harus lebih besar dari waktu mulai');
+                    return false;
+                } else {
+                    endTimeInput.setCustomValidity('');
+                    return true;
+                }
+            }
+            return true;
+        }
+
+        // Listen to input changes on start_time
+        startTimeInput.addEventListener('input', function() {
+            toggleEndTime();
+            validateTimeDifference();
+        });
+        
+        startTimeInput.addEventListener('change', function() {
+            toggleEndTime();
+            validateTimeDifference();
+        });
+
+        // Listen to input changes on end_time
+        endTimeInput.addEventListener('input', validateTimeDifference);
+        endTimeInput.addEventListener('change', validateTimeDifference);
+
+        // Validate on form submit
+        form.addEventListener('submit', function(e) {
+            if (!validateTimeDifference()) {
+                e.preventDefault();
+                endTimeInput.reportValidity();
+            }
+        });
+
+        // Check on page load
+        toggleEndTime();
+    });
+</script>
+@endpush
 @endsection
