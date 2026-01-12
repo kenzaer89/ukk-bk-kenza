@@ -1,6 +1,6 @@
 <?php
 
-$directory = __DIR__ . '/resources/views';
+$directory = __DIR__ . '/../resources/views';
 $count = 0;
 
 function replaceInDirectory($dir, &$count) {

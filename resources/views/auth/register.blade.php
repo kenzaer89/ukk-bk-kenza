@@ -151,12 +151,13 @@
                         <div>
                             <label for="absen" class="block text-brand-light font-medium mb-2">Nomor Absen</label>
                             <input 
-                                type="text" 
+                                type="number" 
                                 id="absen" 
                                 name="absen" 
                                 value="{{ old('absen') }}" 
+                                min="1"
                                 class="w-full px-4 py-3 bg-brand-dark border border-brand-light/10 rounded-lg text-brand-light placeholder-brand-light/40 focus:outline-none focus:border-brand-teal/50 focus:ring-2 focus:ring-brand-teal/20 transition-all"
-                                placeholder="Contoh: 01, 15, dst"
+                                placeholder="Contoh: 1, 15, dst"
                             >
                             @error('absen')
                                 <p class="mt-1 text-sm text-red-400">{{ $message }}</p>

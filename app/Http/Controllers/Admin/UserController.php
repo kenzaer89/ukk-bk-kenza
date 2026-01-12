@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Models\ClassModel;
+use App\Models\SchoolClass;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -34,7 +34,7 @@ class UserController extends Controller
      */
     public function create()
     {
-        $classes = ClassModel::orderBy('name')->get();
+        $classes = SchoolClass::orderBy('name')->get();
         $students = User::where('role', 'student')->orderBy('name')->get();
         $allRoles = ['admin', 'guru_bk', 'wali_kelas', 'student', 'parent'];
         
@@ -67,7 +67,7 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
-        $classes = ClassModel::orderBy('name')->get();
+        $classes = SchoolClass::orderBy('name')->get();
         $students = User::where('role', 'student')->orderBy('name')->get();
         $allRoles = ['admin', 'guru_bk', 'wali_kelas', 'student', 'parent'];
 

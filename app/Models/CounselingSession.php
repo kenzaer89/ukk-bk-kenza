@@ -55,4 +55,19 @@ class CounselingSession extends Model
     {
         return $this->belongsToMany(Topic::class, 'session_topic', 'session_id', 'topic_id');
     }
+
+    /**
+     * Boot the model.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Ketika sesi diupdate, sinkronisasi status dengan jadwal
+        static::updated(function ($session) {
+            if ($session->schedule_id && in_array($session->status, ['completed', 'cancelled'])) {
+                $session->schedule()->update(['status' => $session->status]);
+            }
+        });
+    }
 }

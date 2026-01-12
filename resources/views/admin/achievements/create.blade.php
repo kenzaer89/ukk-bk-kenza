@@ -11,13 +11,15 @@
             @csrf
             
             <div>
-                <label for="student_id" class="block text-sm font-medium text-gray-300 mb-2">Pilih Siswa</label>
+                <label for="student_id" class="block text-sm font-medium text-gray-300 mb-2">Pilih Siswa <span class="text-red-500">*</span></label>
                 <select name="student_id" id="student_id" required
+                        oninvalid="this.setCustomValidity('Silakan pilih siswa dalam daftar')"
+                        oninput="this.setCustomValidity('')"
                         class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-green-500 focus:border-green-500 text-sm text-white">
                     <option value="">-- Cari Siswa --</option>
                     @foreach ($students as $student)
                         <option value="{{ $student->id }}" {{ old('student_id') == $student->id ? 'selected' : '' }}>
-                            {{ $student->name }} ({{ $student->nis }}) - {{ $student->schoolClass->name ?? 'Tanpa Kelas' }}
+                            {{ $student->name }} (Absen: {{ $student->absen ?? '-' }}) - {{ $student->schoolClass->name ?? 'Tanpa Kelas' }}
                         </option>
                     @endforeach
                 </select>
@@ -25,18 +27,22 @@
             </div>
 
             <div>
-                <label for="name" class="block text-sm font-medium text-gray-300 mb-2">Nama Prestasi</label>
+                <label for="name" class="block text-sm font-medium text-gray-300 mb-2">Nama Prestasi <span class="text-red-500">*</span></label>
                 <input type="text" name="name" id="name" value="{{ old('name') }}" required
                        placeholder="Contoh: Juara 1 Lomba Sains Tingkat Nasional"
-                       class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white">
+                       oninvalid="this.setCustomValidity('Harap isi nama prestasi')"
+                       oninput="this.setCustomValidity('')"
+                       class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:ring-green-500 focus:border-green-500">
                 @error('name') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
             </div>
             
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label for="level" class="block text-sm font-medium text-gray-300 mb-2">Tingkat Prestasi</label>
+                    <label for="level" class="block text-sm font-medium text-gray-300 mb-2">Tingkat Prestasi <span class="text-red-500">*</span></label>
                     <select name="level" id="level" required
-                            class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white">
+                            oninvalid="this.setCustomValidity('Pilih tingkat prestasi')"
+                            oninput="this.setCustomValidity('')"
+                            class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:ring-green-500 focus:border-green-500">
                         <option value="">-- Pilih Tingkat --</option>
                         @foreach ($levels as $level)
                             <option value="{{ $level }}" {{ old('level') == $level ? 'selected' : '' }}>
@@ -47,26 +53,32 @@
                     @error('level') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
                 </div>
                 <div>
-                    <label for="achievement_date" class="block text-sm font-medium text-gray-300 mb-2">Tanggal Dicapai (Opsional)</label>
-                    <input type="date" name="achievement_date" id="achievement_date" value="{{ old('achievement_date') }}"
-                           class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white">
+                    <label for="achievement_date" class="block text-sm font-medium text-gray-300 mb-2">Tanggal Dicapai <span class="text-red-500">*</span></label>
+                    <input type="date" name="achievement_date" id="achievement_date" value="{{ old('achievement_date') }}" required
+                           oninvalid="this.setCustomValidity('Pilih tanggal pencapaian prestasi')"
+                           oninput="this.setCustomValidity('')"
+                           class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:ring-green-500 focus:border-green-500">
                     @error('achievement_date') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
                 </div>
             </div>
 
             <div>
-                <label for="point" class="block text-sm font-medium text-gray-300 mb-2">Poin Prestasi</label>
-                <input type="number" name="point" id="point" value="{{ old('point', 10) }}" required min="1"
+                <label for="point" class="block text-sm font-medium text-gray-300 mb-2">Poin Prestasi <span class="text-red-500">*</span></label>
+                <input type="number" name="point" id="point" value="{{ old('point', 10) }}" required min="1" max="150"
                        placeholder="Contoh: 10"
-                       class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white">
+                       oninvalid="this.setCustomValidity('Masukkan jumlah poin (1-150)')"
+                       oninput="this.setCustomValidity('')"
+                       class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:ring-green-500 focus:border-green-500">
                 <p class="text-xs text-gray-400 mt-1">Poin akan ditambahkan ke total poin siswa</p>
                 @error('point') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
             </div>
 
             <div>
-                <label for="description" class="block text-sm font-medium text-gray-300 mb-2">Deskripsi Prestasi</label>
+                <label for="description" class="block text-sm font-medium text-gray-300 mb-2">Deskripsi Prestasi <span class="text-red-500">*</span></label>
                 <textarea name="description" id="description" rows="3" required
                           placeholder="Jelaskan detail prestasi yang diraih..."
+                          oninvalid="this.setCustomValidity('Harap isi deskripsi prestasi')"
+                          oninput="this.setCustomValidity('')"
                           class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white">{{ old('description') }}</textarea>
                 @error('description') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
             </div>

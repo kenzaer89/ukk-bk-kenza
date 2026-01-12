@@ -3,9 +3,9 @@
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 
-require __DIR__ . '/vendor/autoload.php';
+require __DIR__ . '/../vendor/autoload.php';
 
-$app = require_once __DIR__ . '/bootstrap/app.php';
+$app = require_once __DIR__ . '/../bootstrap/app.php';
 $app->make('Illuminate\Contracts\Console\Kernel')->bootstrap();
 
 $user = User::where('email', 'kenza@gmail.com')->first();

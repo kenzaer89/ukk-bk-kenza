@@ -44,7 +44,7 @@ class SessionController extends Controller
                              ->with('info', 'Sesi untuk jadwal ini sudah dicatat. Anda diarahkan ke detail sesi.');
         }
 
-        $topics = Topic::orderBy('name')->get();
+        $topics = Topic::where('is_custom', false)->orderBy('name')->get();
 
         return view('admin.sessions.create', compact('schedule', 'topics'));
     }
@@ -103,7 +103,7 @@ class SessionController extends Controller
     // Metode 'edit' dan 'update' untuk memungkinkan Guru BK mengoreksi catatan sesi.
     public function edit(CounselingSession $session)
     {
-        $topics = Topic::orderBy('name')->get();
+        $topics = Topic::where('is_custom', false)->orderBy('name')->get();
         // Ambil ID topik yang sudah terpilih untuk pre-select di form
         $selectedTopics = $session->topics->pluck('id')->toArray();
 

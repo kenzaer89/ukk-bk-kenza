@@ -3,7 +3,7 @@
 @section('title', 'Riwayat Pelanggaran')
 
 @section('content')
-<div class="min-h-screen bg-brand-dark p-6">
+<div class="min-h-screen p-6">
     <!-- Header -->
     <div class="mb-8 flex justify-between items-center">
         <div>

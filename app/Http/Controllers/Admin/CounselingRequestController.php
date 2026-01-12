@@ -25,8 +25,16 @@ class CounselingRequestController extends Controller
         }
         
         $requests = $query->latest()->paginate(15);
+
+        // Count for stats
+        $counts = [
+            'all' => CounselingRequest::count(),
+            'pending' => CounselingRequest::where('status', 'pending')->count(),
+            'approved' => CounselingRequest::where('status', 'approved')->count(),
+            'rejected' => CounselingRequest::where('status', 'rejected')->count(),
+        ];
         
-        return view('admin.counseling_requests.index', compact('requests'));
+        return view('admin.counseling_requests.index', compact('requests', 'counts'));
     }
 
     /**
@@ -56,6 +64,7 @@ class CounselingRequestController extends Controller
         $counseling_request->update([
             'status' => 'approved',
             'teacher_id' => Auth::id(),
+            'notes' => $request->notes,
         ]);
 
         // Create schedule
@@ -63,6 +72,7 @@ class CounselingRequestController extends Controller
             'student_id' => $counseling_request->student_id,
             'teacher_id' => Auth::id(),
             'counseling_request_id' => $counseling_request->id,
+            'topic_id' => $counseling_request->topic_id,
             'scheduled_date' => $request->scheduled_date,
             'start_time' => $request->start_time,
             'end_time' => $request->end_time,
@@ -105,7 +115,7 @@ class CounselingRequestController extends Controller
         ]);
 
         return redirect()->route('admin.counseling_requests.index')
-            ->with('success', 'Permintaan konseling telah ditolak.');
+            ->with('error', 'Permintaan konseling telah ditolak.');
     }
 
     /**

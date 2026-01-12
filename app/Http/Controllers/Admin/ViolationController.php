@@ -19,7 +19,7 @@ class ViolationController extends Controller
     public function index()
     {
         $violations = Violation::with(['student.schoolClass', 'rule'])
-            ->latest('violation_date')
+            ->latest()
             ->paginate(10);
 
         return view('admin.violations.index', compact('violations'));
@@ -31,7 +31,7 @@ class ViolationController extends Controller
     public function create()
     {
         $students = User::where('role', 'student')->with('schoolClass')->orderBy('name')->get();
-        $rules = Rule::orderBy('name')->get();
+        $rules = Rule::where('is_custom', false)->orderBy('name')->get();
         return view('admin.violations.create', compact('students', 'rules'));
     }
 
@@ -41,7 +41,7 @@ class ViolationController extends Controller
     public function edit(Violation $violation)
     {
         $students = User::where('role', 'student')->orderBy('name')->get();
-        $rules = Rule::orderBy('name')->get();
+        $rules = Rule::where('is_custom', false)->orderBy('name')->get();
         return view('admin.violations.edit', compact('violation', 'students', 'rules'));
     }
 
@@ -54,7 +54,7 @@ class ViolationController extends Controller
             'student_id' => 'required|exists:users,id',
             'rule_id' => 'required',
             'violation_date' => 'required|date',
-            'description' => 'nullable|string',
+            'description' => 'required|string',
             'status' => 'required|in:pending,resolved,escalated',
         ]);
 
@@ -89,7 +89,8 @@ class ViolationController extends Controller
                 'name' => $request->custom_rule_name,
                 'points' => $customPoints,
                 'description' => 'Aturan custom dibuat melalui edit pelanggaran',
-                'category' => 'custom'
+                'category' => 'custom',
+                'is_custom' => true
             ]);
             $ruleIdToUse = $newRule->id;
         }
@@ -108,9 +109,27 @@ class ViolationController extends Controller
         $violation->refresh();
         
         if ($violation->status === 'resolved' && $violation->student && $violation->rule) {
+            $rulePoints = abs($violation->rule->points);
+            $currentPoints = $violation->student->points;
+
+            if ($rulePoints > $currentPoints) {
+                // Rollback status to pending if points are insufficient
+                $violation->update(['status' => 'pending']);
+                return redirect()->back()
+                                 ->withInput()
+                                 ->with('error', 'Gagal memperbarui status menjadi resolved. Poin pengurangan (' . $rulePoints . ') melebihi sisa poin siswa (' . $currentPoints . ').');
+            }
+
             // Poin negatif, jadi increment untuk mengurangi (tambah minus = kurang)
             $violation->student->increment('points', $violation->rule->points);
         }
+
+        // Notifikasi ke Siswa
+        \App\Models\Notification::create([
+            'user_id' => $violation->student_id,
+            'message' => "Data pelanggaran diperbarui: " . $violation->rule->name . ". Status: " . ucfirst($violation->status),
+            'status' => 'unread',
+        ]);
 
         return redirect()->route('admin.violations.index')
                          ->with('success', 'Data pelanggaran berhasil diperbarui dan poin telah disesuaikan dengan status.');
@@ -145,7 +164,7 @@ class ViolationController extends Controller
             'student_id' => 'required|exists:users,id,role,student',
             'rule_id' => 'required',
             'violation_date' => 'required|date',
-            'description' => 'nullable|string',
+            'description' => 'required|string',
             'status' => 'required|in:pending,resolved,escalated',
         ]);
 
@@ -174,7 +193,8 @@ class ViolationController extends Controller
                     'name' => $request->custom_rule_name,
                     'points' => $customPoints,
                     'description' => 'Aturan custom dibuat melalui form catat pelanggaran',
-                    'category' => 'custom'
+                    'category' => 'custom',
+                    'is_custom' => true
                 ]);
                 $ruleId = $newRule->id;
             }
@@ -192,17 +212,31 @@ class ViolationController extends Controller
 
             // HANYA kurangi poin jika statusnya 'resolved'
             if ($request->status === 'resolved') {
-                $rulePoints = $violation->rule->points;
+                $rulePoints = abs($violation->rule->points);
                 
                 $student = User::find($request->student_id);
                 if ($student) {
+                    if ($rulePoints > $student->points) {
+                        // Delete the violation if points are insufficient to be resolved immediately
+                        $violation->delete();
+                        return redirect()->back()
+                                         ->withInput()
+                                         ->with('error', 'Gagal mencatat pelanggaran dengan status resolved. Poin pengurangan (' . $rulePoints . ') melebihi sisa poin siswa (' . $student->points . '). Silakan pilih status Pending atau pilih aturan lain.');
+                    }
                     // Poin negatif, jadi increment untuk mengurangi (tambah minus = kurang)
-                    $student->increment('points', $rulePoints);
+                    $student->increment('points', $violation->rule->points);
                 }
                 $message .= ' Poin telah dikurangi (' . $rulePoints . ').';
             } else {
                 $message .= ' Poin belum dikurangi karena status masih ' . $request->status . '.';
             }
+
+            // Notifikasi ke Siswa
+            \App\Models\Notification::create([
+                'user_id' => $request->student_id,
+                'message' => "Pelanggaran baru dicatat: " . $violation->rule->name . " (-" . abs($violation->rule->points) . " poin). Status: " . ucfirst($request->status),
+                'status' => 'unread',
+            ]);
 
             return redirect()->route('admin.violations.index')
                              ->with('success', $message);

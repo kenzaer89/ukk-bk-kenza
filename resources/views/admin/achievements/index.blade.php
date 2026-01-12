@@ -45,16 +45,22 @@
                             </td>
                             <td class="px-5 py-5 text-sm font-bold text-green-400">+{{ $achievement->point }}</td>
                             <td class="px-5 py-5 text-sm">{{ $achievement->achievement_date ? $achievement->achievement_date->format('d M Y') : '-' }}</td>
-                            <td class="px-5 py-5 text-sm space-x-2">
-                                <a href="{{ route('admin.achievements.edit', $achievement) }}" 
-                                   class="text-yellow-400 hover:text-yellow-300">Edit</a>
-                                <form action="{{ route('admin.achievements.destroy', $achievement) }}" method="POST" class="inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" 
-                                            class="text-red-400 hover:text-red-300"
-                                            onclick="return confirm('Hapus catatan prestasi ini?')">Hapus</button>
-                                </form>
+                            <td class="px-5 py-5 text-sm">
+                                <div class="flex items-center gap-2">
+                                    <a href="{{ route('admin.achievements.edit', $achievement) }}" 
+                                       class="inline-flex items-center px-3 py-1 bg-yellow-600/20 text-yellow-500 border border-yellow-500/50 rounded-md hover:bg-yellow-600 hover:text-white transition text-xs font-bold">
+                                        Edit
+                                    </a>
+                                    <form action="{{ route('admin.achievements.destroy', $achievement) }}" method="POST" class="inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" 
+                                                class="inline-flex items-center px-3 py-1 bg-red-600/10 text-red-500 border border-red-600/30 rounded-md hover:bg-red-600 hover:text-white transition text-xs font-bold"
+                                                onclick="return confirm('Hapus catatan prestasi ini?')">
+                                            Hapus
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     @empty

@@ -107,36 +107,39 @@
                     @error('status') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
                 </div>
                 
-                <div class="flex items-center">
-                    <input type="hidden" name="follow_up_required" value="0">
-                    <input type="checkbox" name="follow_up_required" id="follow_up_required" value="1" {{ old('follow_up_required', $session->follow_up_required) ? 'checked' : '' }}
-                           class="h-5 w-5 text-green-600 bg-gray-700 border-gray-600 rounded focus:ring-green-500">
-                    <label for="follow_up_required" class="ml-2 text-sm font-medium text-gray-300">Perlu Tindak Lanjut (Follow Up Required)</label>
-                </div>
+
             </section>
             
             {{-- Bagian IV: Topik Sesi (Dapat Diubah oleh BK) --}}
             <section>
                 <h3 class="text-xl font-bold text-purple-400 mb-3 border-b border-gray-700 pb-2">Topik Sesi (Final)</h3>
                 <div>
-                    <label for="topic_ids" class="block text-sm font-medium text-gray-300 mb-2">Pilih Topik Konseling</label>
-                    <select name="topic_ids[]" id="topic_ids" multiple required
-                            class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white h-40">
-                        @php
-                            $selectedTopics = old('topic_ids', $session->topics->pluck('id')->toArray());
-                        @endphp
+                    <label for="topic_id" class="block text-sm font-medium text-gray-300 mb-2">Pilih Topik Konseling</label>
+                    <select name="topic_id" id="topic_id"
+                            class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">-- Pilih Topik --</option>
+                        <option value="custom" {{ (old('topic_id', optional($session->topics->first())->is_custom ? 'custom' : optional($session->topics->first())->id)) == 'custom' ? 'selected' : '' }}>-- Custom (Tulis Sendiri) --</option>
                         @foreach ($topics as $topic)
-                            <option value="{{ $topic->id }}" {{ in_array($topic->id, $selectedTopics) ? 'selected' : '' }}>
+                            <option value="{{ $topic->id }}" {{ old('topic_id', optional($session->topics->first())->id) == $topic->id ? 'selected' : '' }}>
                                 {{ $topic->name }}
                             </option>
                         @endforeach
                     </select>
-                    @error('topic_ids') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
+                    @error('topic_id') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
+                </div>
+
+                <div id="custom-topic-field" class="mt-3 {{ (old('topic_id', optional($session->topics->first())->is_custom ? 'custom' : optional($session->topics->first())->id)) == 'custom' ? '' : 'hidden' }}">
+                    <label for="custom_topic" class="block text-sm font-medium text-gray-300 mb-2">Topik Custom</label>
+                    <input type="text" name="custom_topic" id="custom_topic" value="{{ old('custom_topic', optional($session->topics->first())->is_custom ? $session->topics->first()->name : '') }}"
+                           placeholder="Masukkan nama topik baru..."
+                           class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:ring-blue-500 focus:border-blue-500">
+                    <p class="text-xs text-gray-400 mt-1">Hanya masukkan 1 topik jika menggunakan opsi custom.</p>
+                    @error('custom_topic') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
                 </div>
             </section>
 
             <div class="flex justify-end space-x-3 pt-4 border-t border-gray-700 mt-6">
-                <a href="{{ route('admin.counseling_sessions.index') }}" 
+                <a href="{{ route('admin.schedules.index') }}" 
                    class="py-2 px-4 border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-700 transition">Batal</a>
                 <button type="submit" 
                         class="py-2 px-4 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition duration-300">
@@ -147,3 +150,31 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const topicSelect = document.getElementById('topic_id');
+        const customTopicField = document.getElementById('custom-topic-field');
+        const customTopicInput = document.getElementById('custom_topic');
+
+        function toggleCustomTopic() {
+            if (topicSelect.value === 'custom') {
+                customTopicField.classList.remove('hidden');
+                customTopicInput.setAttribute('required', 'required');
+            } else {
+                customTopicField.classList.add('hidden');
+                customTopicInput.removeAttribute('required');
+                // Optional: clear input when hidden
+                // customTopicInput.value = '';
+            }
+        }
+
+        // Run on load
+        toggleCustomTopic();
+
+        // Run on change
+        topicSelect.addEventListener('change', toggleCustomTopic);
+    });
+</script>
+@endpush

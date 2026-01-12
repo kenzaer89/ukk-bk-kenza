@@ -43,7 +43,7 @@ class AchievementController extends Controller
             'student_id' => 'required|exists:users,id,role,student',
             'name' => 'required|string|max:255',
             'level' => 'nullable|string|max:100',
-            'point' => 'required|integer|min:1',
+            'point' => 'required|integer|min:1|max:150',
             'achievement_date' => 'required|date',
             'description' => 'required|string',
         ]);
@@ -63,6 +63,13 @@ class AchievementController extends Controller
         if ($student) {
             $student->increment('points', $request->point);
         }
+
+        // 3. Notifikasi ke Siswa
+        \App\Models\Notification::create([
+            'user_id' => $request->student_id,
+            'message' => "Selamat! Prestasi baru dicatat: " . $achievement->name . " (+" . $achievement->point . " poin).",
+            'status' => 'unread',
+        ]);
 
         return redirect()->route('admin.achievements.index')
             ->with('success', 'Prestasi siswa berhasil dicatat dan poin telah ditambahkan (+' . $achievement->point . ').');
@@ -89,7 +96,7 @@ class AchievementController extends Controller
             'student_id' => 'required|exists:users,id,role,student',
             'name' => 'required|string|max:255',
             'level' => 'nullable|string|max:100',
-            'point' => 'required|integer|min:1',
+            'point' => 'required|integer|min:1|max:150',
             'achievement_date' => 'required|date',
             'description' => 'required|string',
         ]);
@@ -120,6 +127,13 @@ class AchievementController extends Controller
                 }
             }
         }
+
+        // Notifikasi ke Siswa
+        \App\Models\Notification::create([
+            'user_id' => $achievement->student_id,
+            'message' => "Data prestasi Anda diperbarui: " . $achievement->name . " (+" . $achievement->point . " poin).",
+            'status' => 'unread',
+        ]);
 
         return redirect()->route('admin.achievements.index')
             ->with('success', 'Prestasi siswa berhasil diperbarui.');

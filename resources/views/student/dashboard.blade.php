@@ -3,7 +3,7 @@
 @section('title', 'Dashboard Siswa')
 
 @section('content')
-<div class="min-h-screen bg-brand-dark p-6">
+<div class="min-h-screen p-6">
     <!-- Header -->
     <div class="mb-8 flex justify-between items-end">
         <div>
@@ -84,7 +84,7 @@
 
     <!-- Quick Actions -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <a href="{{ route('student.counseling_requests.create') }}" class="group bg-gradient-to-r from-brand-teal to-[#5a8e91] rounded-xl p-6 hover:shadow-[0_0_30px_rgba(118,171,174,0.3)] transition-all transform hover:-translate-y-1">
+        <a href="{{ route('student.counseling_requests.create') }}" class="group bg-gradient-to-r from-teal-500 to-teal-600 rounded-xl p-6 hover:shadow-[0_0_30px_rgba(45,212,191,0.3)] transition-all transform hover:-translate-y-1">
             <div class="flex items-center gap-4">
                 <div class="w-14 h-14 bg-white/10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                     <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -98,16 +98,16 @@
             </div>
         </a>
 
-        <a href="{{ route('student.counseling_requests.index') }}" class="group bg-brand-gray border border-brand-light/10 rounded-xl p-6 hover:border-brand-teal/50 hover:shadow-[0_0_20px_rgba(118,171,174,0.15)] transition-all transform hover:-translate-y-1">
+        <a href="{{ route('student.counseling_requests.index') }}" class="group bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-xl p-6 hover:shadow-[0_0_30px_rgba(99,102,241,0.3)] transition-all transform hover:-translate-y-1">
             <div class="flex items-center gap-4">
-                <div class="w-14 h-14 bg-brand-teal/10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <svg class="w-8 h-8 text-brand-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="w-14 h-14 bg-white/10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                     </svg>
                 </div>
                 <div>
-                    <h3 class="text-brand-light font-bold text-lg">Lihat Permintaan</h3>
-                    <p class="text-brand-light/60 text-sm">Riwayat permintaan konseling</p>
+                    <h3 class="text-white font-bold text-lg">Lihat Permintaan</h3>
+                    <p class="text-white/80 text-sm">Riwayat permintaan konseling</p>
                 </div>
             </div>
         </a>
@@ -117,13 +117,16 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <!-- Jadwal Konseling Mendatang -->
         <div class="bg-brand-gray rounded-xl border border-brand-light/10 p-6">
-            <div class="flex items-center gap-3 mb-6">
-                <div class="w-10 h-10 bg-brand-teal/10 rounded-lg flex items-center justify-center">
-                    <svg class="w-5 h-5 text-brand-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                    </svg>
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-brand-teal/10 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-brand-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-brand-light">Jadwal Mendatang</h3>
                 </div>
-                <h3 class="text-xl font-bold text-brand-light">Jadwal Mendatang</h3>
+                <a href="{{ route('student.schedules.index', ['status' => 'scheduled']) }}" class="text-sm text-brand-teal hover:text-brand-teal/80 transition-colors">Lihat Semua</a>
             </div>
 
             @if($upcomingSessions->count() > 0)
@@ -157,13 +160,16 @@
 
         <!-- Riwayat Konseling -->
         <div class="bg-brand-gray rounded-xl border border-brand-light/10 p-6">
-            <div class="flex items-center gap-3 mb-6">
-                <div class="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
-                    <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-brand-light">Riwayat Konseling</h3>
                 </div>
-                <h3 class="text-xl font-bold text-brand-light">Riwayat Konseling</h3>
+                <a href="{{ route('student.schedules.index', ['status' => 'completed']) }}" class="text-sm text-brand-teal hover:text-brand-teal/80 transition-colors">Lihat Semua</a>
             </div>
 
             @if($recentSessions->count() > 0)

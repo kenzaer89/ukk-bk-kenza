@@ -108,10 +108,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('dashboard', [StudentDashboardController::class, 'index'])->name('dashboard');
         Route::get('violations', [StudentDashboardController::class, 'violations'])->name('violations.index');
         Route::get('achievements', [StudentDashboardController::class, 'achievements'])->name('achievements.index');
+        Route::get('schedules', [StudentDashboardController::class, 'schedules'])->name('schedules.index');
         
         // PERMINTAAN KONSELING SISWA
         Route::resource('counseling_requests', CounselingRequestController::class)->only(['index', 'create', 'store']);
-        Route::post('counseling_requests/{request}/cancel', [CounselingRequestController::class, 'cancel'])->name('counseling_requests.cancel');
+        Route::post('counseling_requests/{counseling_request}/cancel', [CounselingRequestController::class, 'cancel'])->name('counseling_requests.cancel');
     });
 
     // Shared notification API routes (for AJAX on both admin & student)

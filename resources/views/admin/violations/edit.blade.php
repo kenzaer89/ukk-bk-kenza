@@ -13,24 +13,27 @@
             
             <div>
                 <label for="student_id" class="block text-sm font-medium text-gray-300 mb-2">Pilih Siswa</label>
-                <select name="student_id" id="student_id" required
-                        class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-red-500 focus:border-red-500 text-sm text-white">
-                    <option value="">-- Pilih Siswa --</option>
+                <select id="student_id_display" disabled
+                        class="w-full p-3 bg-gray-600 border border-gray-600 rounded-lg text-sm text-gray-400 cursor-not-allowed">
                     @foreach ($students as $student)
-                        <option value="{{ $student->id }}" {{ old('student_id', $violation->student_id) == $student->id ? 'selected' : '' }}>
-                            {{ $student->name }} ({{ $student->nis }}) - {{ $student->schoolClass->name ?? 'Tanpa Kelas' }}
+                        <option value="{{ $student->id }}" data-points="{{ $student->points }}" {{ $violation->student_id == $student->id ? 'selected' : '' }}>
+                            {{ $student->name }} - {{ $student->schoolClass->name ?? 'Tanpa Kelas' }} (Sisa Poin: {{ $student->points }})
                         </option>
                     @endforeach
                 </select>
+                <input type="hidden" name="student_id" value="{{ $violation->student_id }}">
+                <p class="mt-1 text-xs text-gray-400">Siswa tidak dapat diubah setelah pelanggaran dibuat</p>
                 @error('student_id') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
             </div>
 
             <div>
-                <label for="rule_id" class="block text-sm font-medium text-gray-300 mb-2">Pilih Jenis Pelanggaran</label>
+                <label for="rule_id" class="block text-sm font-medium text-gray-300 mb-2">Pilih Jenis Pelanggaran <span class="text-red-500">*</span></label>
                 <select name="rule_id" id="rule_id" required
+                        oninvalid="this.setCustomValidity('Silakan pilih jenis pelanggaran')"
+                        oninput="this.setCustomValidity('')"
                         class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-red-500 focus:border-red-500 text-sm text-white">
                     <option value="">-- Pilih Aturan Pelanggaran --</option>
-                    <option value="custom" {{ old('rule_id', $violation->rule_id) == 'custom' ? 'selected' : '' }}>-- Custom: Buat Aturan Baru --</option>
+                    <option value="custom" {{ old('rule_id', $violation->rule?->is_custom ? 'custom' : $violation->rule_id) == 'custom' ? 'selected' : '' }}>-- Custom: Buat Aturan Baru --</option>
                     @foreach ($rules as $rule)
                         <option value="{{ $rule->id }}" data-category="{{ $rule->category ?? '' }}" data-points="{{ $rule->points }}" data-name="{{ $rule->name }}" {{ old('rule_id', $violation->rule_id) == $rule->id ? 'selected' : '' }}>
                             {{ $rule->name }} ({{ $rule->points }} poin)
@@ -40,42 +43,51 @@
                 @error('rule_id') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
             </div>
 
-            <div id="custom-rule-fields" class="hidden">
+            <div id="custom-rule-fields" class="{{ old('rule_id', $violation->rule?->is_custom ? 'custom' : $violation->rule_id) == 'custom' ? '' : 'hidden' }}">
                 <div>
                     <label for="custom_rule_name" class="block text-sm font-medium text-gray-300 mb-2">Nama Aturan Baru</label>
-                    <input type="text" name="custom_rule_name" id="custom_rule_name" value="{{ old('custom_rule_name', $violation->rule?->name) }}"
+                    <input type="text" name="custom_rule_name" id="custom_rule_name" value="{{ old('custom_rule_name', $violation->rule?->is_custom ? $violation->rule->name : '') }}"
+                           oninvalid="this.setCustomValidity('Tuliskan nama aturan baru')"
+                           oninput="this.setCustomValidity('')"
                            class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-red-500 focus:border-red-500 text-sm text-white">
                     @error('custom_rule_name') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
                 </div>
                 <div class="mt-3">
                     <label for="custom_points" class="block text-sm font-medium text-gray-300 mb-2">Poin (masukkan angka, mis: 10 akan otomatis menjadi -10 dan dikurangi)</label>
-                        <input type="number" name="custom_points" id="custom_points" value="{{ old('custom_points', optional($violation->rule)->points ? abs($violation->rule->points) : '') }}"
+                        <input type="number" name="custom_points" id="custom_points" value="{{ old('custom_points', ($violation->rule?->is_custom ? abs($violation->rule->points) : '')) }}"
+                           oninvalid="this.setCustomValidity('Masukkan jumlah poin')"
+                           oninput="this.setCustomValidity('')"
                            class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-red-500 focus:border-red-500 text-sm text-white">
                     @error('custom_points') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
                 </div>
             </div>
             
             <div>
-                <label for="violation_date" class="block text-sm font-medium text-gray-300 mb-2">Tanggal Pelanggaran</label>
+                <label for="violation_date" class="block text-sm font-medium text-gray-300 mb-2">Tanggal Pelanggaran <span class="text-red-500">*</span></label>
                 <input type="date" name="violation_date" id="violation_date" value="{{ old('violation_date', $violation->violation_date->format('Y-m-d')) }}" required
+                       oninvalid="this.setCustomValidity('Pilih tanggal pelanggaran')"
+                       oninput="this.setCustomValidity('')"
                        class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-red-500 focus:border-red-500 text-sm text-white">
                 @error('violation_date') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
             </div>
 
             <div>
-                <label for="description" class="block text-sm font-medium text-gray-300 mb-2">Catatan Tambahan (Opsional)</label>
-                <textarea name="description" id="description" rows="4"
+                <label for="description" class="block text-sm font-medium text-gray-300 mb-2">Catatan Tambahan <span class="text-red-500">*</span></label>
+                <textarea name="description" id="description" rows="4" required
+                          oninvalid="this.setCustomValidity('Harap isi catatan pelanggaran')"
+                          oninput="this.setCustomValidity('')"
                           class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-red-500 focus:border-red-500 text-sm text-white">{{ old('description', $violation->description) }}</textarea>
                 @error('description') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
             </div>
 
             <div>
-                <label for="status" class="block text-sm font-medium text-gray-300 mb-2">Status</label>
+                <label for="status" class="block text-sm font-medium text-gray-300 mb-2">Status <span class="text-red-500">*</span></label>
                 <select name="status" id="status" required
+                        oninvalid="this.setCustomValidity('Pilih status pelanggaran')"
+                        oninput="this.setCustomValidity('')"
                         class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-red-500 focus:border-red-500 text-sm text-white">
                     <option value="pending" {{ old('status', $violation->status) == 'pending' ? 'selected' : '' }}>Pending (Menunggu Tindakan)</option>
                     <option value="resolved" {{ old('status', $violation->status) == 'resolved' ? 'selected' : '' }}>Resolved (Selesai)</option>
-                    <option value="escalated" {{ old('status', $violation->status) == 'escalated' ? 'selected' : '' }}>Escalated (Diteruskan ke Pihak Lain)</option>
                 </select>
                 @error('status') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
             </div>
@@ -93,8 +105,13 @@
 </div>
 <script>
     (function() {
+        const studentSelect = document.getElementById('student_id_display');
         const ruleSelect = document.getElementById('rule_id');
         const customFields = document.getElementById('custom-rule-fields');
+        const customPointsInput = document.getElementById('custom_points');
+        const statusSelect = document.getElementById('status');
+        const form = ruleSelect.closest('form');
+
         function toggleCustom() {
             if (!ruleSelect || !customFields) return;
             const selectedOpt = ruleSelect.options[ruleSelect.selectedIndex];
@@ -113,10 +130,44 @@
                 customFields.classList.add('hidden');
             }
         }
+
+        function validatePointLimit() {
+            // Only validate if status is being set to 'resolved'
+            if (statusSelect.value !== 'resolved') return true;
+
+            const studentOpt = studentSelect.options[studentSelect.selectedIndex];
+            if (!studentOpt || !studentOpt.value) return true; // Should not happen as student is pre-selected
+
+            const currentPoints = parseInt(studentOpt.dataset.points);
+            let deductionPoints = 0;
+
+            if (ruleSelect.value === 'custom') {
+                deductionPoints = Math.abs(parseInt(customPointsInput.value || 0));
+            } else {
+                const ruleOpt = ruleSelect.options[ruleSelect.selectedIndex];
+                if (ruleOpt && ruleOpt.value) {
+                    deductionPoints = Math.abs(parseInt(ruleOpt.dataset.points));
+                }
+            }
+
+            if (deductionPoints > currentPoints) {
+                alert(`Gagal: Pengurangan poin (${deductionPoints}) melebihi sisa poin siswa (${currentPoints}). Silakan pilih status Pending atau pilih aturan lain.`);
+                return false;
+            }
+
+            return true;
+        }
+
         if (ruleSelect) {
             ruleSelect.addEventListener('change', toggleCustom);
             toggleCustom();
         }
+
+        form.addEventListener('submit', function(e) {
+            if (!validatePointLimit()) {
+                e.preventDefault();
+            }
+        });
     })();
 </script>
 @endsection

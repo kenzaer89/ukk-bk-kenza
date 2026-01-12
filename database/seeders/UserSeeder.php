@@ -10,25 +10,33 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        // Admin Utama
+        // Admin Utama (System Admin)
         User::firstOrCreate(
             ['email' => 'admin@bk.test'],
             [
-                'name' => 'Admin Sekolah',
+                'name' => 'System Administrator',
                 'role' => 'admin',
                 'password' => Hash::make('password'),
             ]
         );
 
-        // Guru BK 
-        User::firstOrCreate(
-            ['email' => 'guru_bk@bk.test'],
-            [
-                'name' => 'Guru BK',
-                'role' => 'guru_bk',
-                'password' => Hash::make('password'),
-            ]
-        );
+        // Daftar Guru BK
+        $guruBK = [
+            ['name' => 'Bu Prapti', 'email' => 'prapti@bk.test'],
+            ['name' => 'Bu Eka', 'email' => 'eka@bk.test'],
+            ['name' => 'Bu Pur', 'email' => 'pur@bk.test'],
+        ];
+
+        foreach ($guruBK as $guru) {
+            User::firstOrCreate(
+                ['email' => $guru['email']],
+                [
+                    'name' => $guru['name'],
+                    'role' => 'guru_bk',
+                    'password' => Hash::make('password'),
+                ]
+            );
+        }
 
         // Tambah 1 akun siswa default supaya bisa login
         User::firstOrCreate(

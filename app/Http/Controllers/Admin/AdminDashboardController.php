@@ -37,6 +37,7 @@ class AdminDashboardController extends Controller
             ->get();
 
         $upcomingSchedules = CounselingSchedule::with(['student', 'teacher'])
+            ->where('status', 'scheduled') // Only show scheduled sessions
             ->whereDate('scheduled_date', '>=', now())
             ->orderBy('scheduled_date')
             ->limit(5)
@@ -85,6 +86,7 @@ class AdminDashboardController extends Controller
                 return [
                     'id' => $request->id,
                     'student_name' => $request->student->name,
+                    'student_email' => $request->student->email,
                     'reason' => $request->reason,
                     'requested_at' => $request->requested_at->diffForHumans(),
                     'created_at' => $request->created_at->toIso8601String(),

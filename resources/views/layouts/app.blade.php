@@ -120,6 +120,9 @@
                     <a href="{{ route('student.counseling_requests.index') }}" class="{{ request()->routeIs('student.counseling_requests.index') ? 'active' : '' }}">
                         <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> Permintaan Konseling
                     </a>
+                    <a href="{{ route('student.schedules.index') }}" class="{{ request()->routeIs('student.schedules.index') ? 'active' : '' }}">
+                        <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg> Jadwal Konseling
+                    </a>
                     <a href="{{ route('student.violations.index') }}" class="{{ request()->routeIs('student.violations.index') ? 'active' : '' }}">
                         <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Riwayat Pelanggaran
                     </a>
@@ -175,10 +178,139 @@
         </div>
         @yield('content')
     </main>
+    <!-- Global Toast Notification -->
+    <div id="global-toast" class="fixed top-4 right-4 z-[9999] transform translate-x-[450px] transition-all duration-500 opacity-0 pointer-events-none">
+        <div class="bg-gradient-to-r from-brand-teal to-[#5a8e91] text-brand-dark px-6 py-4 rounded-xl shadow-2xl flex items-center gap-4 min-w-[320px] border border-white/20">
+            <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center shrink-0">
+                <svg class="w-6 h-6 text-white animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                </svg>
+            </div>
+            <div class="flex-1">
+                <p class="font-bold text-lg leading-tight" id="toast-title">Notifikasi Baru</p>
+                <p class="text-sm opacity-90 mt-1" id="toast-message">Ada pesan baru untuk Anda.</p>
+            </div>
+            <button onclick="closeGlobalToast()" class="text-brand-dark/50 hover:text-brand-dark transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+    <script>
+        // Global Toast Functions
+        function showGlobalToast(title, message) {
+            const toast = document.getElementById('global-toast');
+            const titleEl = document.getElementById('toast-title');
+            const messageEl = document.getElementById('toast-message');
+            
+            if (!toast) return;
+            
+            titleEl.textContent = title;
+            messageEl.textContent = message;
+            
+            toast.classList.remove('translate-x-[450px]', 'opacity-0', 'pointer-events-none');
+            toast.classList.add('translate-x-0', 'opacity-100', 'pointer-events-auto');
+            
+            // Reset existing timeout if any
+            if (window.toastTimeout) clearTimeout(window.toastTimeout);
+            
+            // Auto hide after 6 seconds
+            window.toastTimeout = setTimeout(closeGlobalToast, 6000);
+        }
+
+        function closeGlobalToast() {
+            const toast = document.getElementById('global-toast');
+            if (toast) {
+                toast.classList.add('translate-x-[450px]', 'opacity-0', 'pointer-events-none');
+                toast.classList.remove('translate-x-0', 'opacity-100', 'pointer-events-auto');
+            }
+        }
+
+        function playNotificationSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (!audioCtx) return;
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.5);
+            } catch(e) { console.log('Audio not supported or blocked'); }
+        }
+    </script>
     
     @stack('scripts')
+    
+    @auth
+        @if(in_array(Auth::user()->role, ['admin', 'guru_bk']))
+        <script>
+            let lastRequestCount = null; // Initialize as null
+
+            // Function to check for new requests (Global)
+            async function checkNewRequests() {
+                try {
+                    const response = await fetch('{{ route('admin.check_new_requests') }}');
+                    const data = await response.json();
+                    
+                    // Initialize count on first run
+                    if (lastRequestCount === null) {
+                        lastRequestCount = data.count;
+                    } 
+                    // Check if there are new requests
+                    else if (data.count > lastRequestCount) {
+                        const newRequestsCount = data.count - lastRequestCount;
+                        if (window.showGlobalToast) {
+                            window.showGlobalToast('Permintaan Baru', `Ada ${newRequestsCount} permintaan konseling baru dari siswa!`);
+                        }
+                        
+                        if (window.playNotificationSound) {
+                            window.playNotificationSound();
+                        }
+                    }
+                    
+                    // Update the last known count
+                    lastRequestCount = data.count;
+                    
+                    // If we are on the dashboard, update the specific UI elements
+                    if (typeof updateRequestsList === 'function') {
+                        updateRequestsList(data.requests);
+                    }
+                    
+                    // Animation trigger if on dashboard
+                    const pendingCardCount = document.getElementById('pending-count');
+                    if (pendingCardCount && data.count > (parseInt(pendingCardCount.textContent) || 0)) {
+                        const card = pendingCardCount.closest('.bg-brand-gray');
+                        if (card) {
+                            card.classList.add('animate-pulse', 'border-yellow-500/50');
+                            setTimeout(() => {
+                                card.classList.remove('animate-pulse', 'border-yellow-500/50');
+                            }, 3000);
+                        }
+                    }
+                    
+                } catch (error) {
+                    console.error('Error checking new requests:', error);
+                }
+            }
+
+            // Check for new requests every 15 seconds
+            setInterval(checkNewRequests, 15000);
+        </script>
+        @endif
+    @endauth
+    
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            // ... existing Alpine/form code ...
             // Attach behavior to all forms that have start_time and end_time inputs
             document.querySelectorAll('form').forEach(function (form) {
                 const startInput = form.querySelector('input[name="start_time"]');

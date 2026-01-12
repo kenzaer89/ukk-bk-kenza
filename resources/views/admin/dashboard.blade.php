@@ -121,7 +121,7 @@
 
     <!-- Quick Actions -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <a href="{{ route('admin.counseling_requests.index') }}" class="group bg-gradient-to-r from-brand-teal to-[#5a8e91] rounded-xl p-6 hover:shadow-[0_0_30px_rgba(118,171,174,0.3)] transition-all transform hover:-translate-y-1">
+        <a href="{{ route('admin.counseling_requests.index') }}" class="group bg-gradient-to-r from-teal-500 to-teal-600 rounded-xl p-6 hover:shadow-[0_0_30px_rgba(45,212,191,0.3)] transition-all transform hover:-translate-y-1">
             <div class="flex items-center gap-4">
                 <div class="w-14 h-14 bg-white/10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                     <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -135,30 +135,30 @@
             </div>
         </a>
 
-        <a href="{{ route('admin.schedules.index') }}" class="group bg-brand-gray border border-brand-light/10 rounded-xl p-6 hover:border-brand-teal/50 hover:shadow-[0_0_20px_rgba(118,171,174,0.15)] transition-all transform hover:-translate-y-1">
+        <a href="{{ route('admin.schedules.index') }}" class="group bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-xl p-6 hover:shadow-[0_0_30px_rgba(99,102,241,0.3)] transition-all transform hover:-translate-y-1">
             <div class="flex items-center gap-4">
-                <div class="w-14 h-14 bg-brand-teal/10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <svg class="w-8 h-8 text-brand-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="w-14 h-14 bg-white/10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                     </svg>
                 </div>
                 <div>
-                    <h3 class="text-brand-light font-bold text-lg">Jadwal Konseling</h3>
-                    <p class="text-brand-light/60 text-sm">Atur jadwal sesi</p>
+                    <h3 class="text-white font-bold text-lg">Jadwal Konseling</h3>
+                    <p class="text-white/80 text-sm">Atur jadwal sesi</p>
                 </div>
             </div>
         </a>
 
-        <a href="{{ route('admin.violations.index') }}" class="group bg-brand-gray border border-brand-light/10 rounded-xl p-6 hover:border-brand-teal/50 hover:shadow-[0_0_20px_rgba(118,171,174,0.15)] transition-all transform hover:-translate-y-1">
+        <a href="{{ route('admin.violations.index') }}" class="group bg-gradient-to-r from-red-500 to-red-600 rounded-xl p-6 hover:shadow-[0_0_30px_rgba(239,68,68,0.3)] transition-all transform hover:-translate-y-1">
             <div class="flex items-center gap-4">
-                <div class="w-14 h-14 bg-red-500/10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="w-14 h-14 bg-white/10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                     </svg>
                 </div>
                 <div>
-                    <h3 class="text-brand-light font-bold text-lg">Pelanggaran</h3>
-                    <p class="text-brand-light/60 text-sm">Catat pelanggaran siswa</p>
+                    <h3 class="text-white font-bold text-lg">Pelanggaran</h3>
+                    <p class="text-white/80 text-sm">Catat pelanggaran siswa</p>
                 </div>
             </div>
         </a>
@@ -177,22 +177,45 @@
                     </div>
                     <h3 class="text-xl font-bold text-brand-light">Permintaan Pending</h3>
                 </div>
-                <span id="requests-badge" class="px-3 py-1 rounded-full text-xs font-bold bg-yellow-500/20 text-yellow-500">
-                    {{ $recentRequests->count() }}
-                </span>
+                <div class="flex items-center gap-3">
+                    <a href="{{ route('admin.counseling_requests.index', ['status' => 'pending']) }}" class="text-sm text-brand-teal hover:text-brand-teal/80 transition-colors">Lihat Semua</a>
+                    <span id="requests-badge" class="px-3 py-1 rounded-full text-xs font-bold bg-yellow-500/20 text-yellow-500">
+                        {{ $recentRequests->count() }}
+                    </span>
+                </div>
             </div>
 
             @if($recentRequests->count() > 0)
                 <div id="requests-container" class="space-y-3">
                     @foreach($recentRequests as $request)
                     <div class="bg-brand-dark/50 border border-brand-light/5 rounded-lg p-4 hover:border-yellow-500/30 transition-all">
-                        <div class="flex justify-between items-start mb-2">
-                            <div class="flex-1">
-                                <p class="font-medium text-brand-light">{{ $request->student->name }}</p>
-                                <p class="text-sm text-brand-light/60 mt-1">{{ Str::limit($request->reason, 60) }}</p>
+                        <div class="flex flex-col gap-2">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-medium text-brand-light">{{ $request->student->name }}</p>
+                                    <p class="text-[10px] text-brand-light/40 uppercase tracking-tight">{{ $request->student->email }}</p>
+                                </div>
+                                <span class="text-[10px] text-brand-light/40">{{ $request->requested_at->diffForHumans() }}</span>
+                            </div>
+                            <div class="text-sm text-brand-light/60">
+                                @if(str_starts_with($request->reason, '[Topik:'))
+                                    @php
+                                        preg_match('/^\[Topik:\s*(.*?)\]/s', $request->reason, $matches);
+                                        $topicName = $matches[1] ?? 'Custom';
+                                        $actualReason = trim(preg_replace('/^\[Topik:.*?\]/s', '', $request->reason));
+                                    @endphp
+                                    <span class="inline-block px-2 py-0.5 bg-brand-teal/10 text-brand-teal text-[10px] rounded uppercase font-bold tracking-tight mb-1">
+                                        {{ $topicName }}
+                                    </span>
+                                    <p class="text-xs italic opacity-80">{{ Str::limit($actualReason, 50) }}</p>
+                                @else
+                                    {{ Str::limit($request->reason, 80) }}
+                                @endif
+                            </div>
+                            <div class="pt-2 border-t border-brand-light/5 mt-1 flex justify-end">
+                                <a href="{{ route('admin.counseling_requests.show', $request) }}" class="text-[10px] font-bold text-brand-teal hover:underline uppercase tracking-wider">Lihat Detail →</a>
                             </div>
                         </div>
-                        <p class="text-xs text-brand-light/40">{{ $request->requested_at->diffForHumans() }}</p>
                     </div>
                     @endforeach
                 </div>
@@ -208,13 +231,16 @@
 
         <!-- Jadwal Mendatang -->
         <div class="bg-brand-gray rounded-xl border border-brand-light/10 p-6">
-            <div class="flex items-center gap-3 mb-6">
-                <div class="w-10 h-10 bg-brand-teal/10 rounded-lg flex items-center justify-center">
-                    <svg class="w-5 h-5 text-brand-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                    </svg>
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-brand-teal/10 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-brand-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-brand-light">Jadwal Mendatang</h3>
                 </div>
-                <h3 class="text-xl font-bold text-brand-light">Jadwal Mendatang</h3>
+                <a href="{{ route('admin.schedules.index') }}" class="text-sm text-brand-teal hover:text-brand-teal/80 transition-colors">Lihat Semua</a>
             </div>
 
             @if($upcomingSchedules->count() > 0)
@@ -252,13 +278,16 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Pelanggaran Terbaru -->
         <div class="bg-brand-gray rounded-xl border border-brand-light/10 p-6">
-            <div class="flex items-center gap-3 mb-6">
-                <div class="w-10 h-10 bg-red-500/10 rounded-lg flex items-center justify-center">
-                    <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-                    </svg>
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-red-500/10 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-brand-light">Pelanggaran Terbaru</h3>
                 </div>
-                <h3 class="text-xl font-bold text-brand-light">Pelanggaran Terbaru</h3>
+                <a href="{{ route('admin.violations.index') }}" class="text-sm text-brand-teal hover:text-brand-teal/80 transition-colors">Lihat Semua</a>
             </div>
 
             @if($recentViolations->count() > 0)
@@ -290,13 +319,16 @@
 
         <!-- Prestasi Terbaru -->
         <div class="bg-brand-gray rounded-xl border border-brand-light/10 p-6">
-            <div class="flex items-center gap-3 mb-6">
-                <div class="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
-                    <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
-                    </svg>
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-brand-light">Prestasi Terbaru</h3>
                 </div>
-                <h3 class="text-xl font-bold text-brand-light">Prestasi Terbaru</h3>
+                <a href="{{ route('admin.achievements.index') }}" class="text-sm text-brand-teal hover:text-brand-teal/80 transition-colors">Lihat Semua</a>
             </div>
 
             @if($recentAchievements->count() > 0)
@@ -327,77 +359,9 @@
         </div>
     </div>
 
-    <!-- Toast Notification -->
-    <div id="toast-notification" class="fixed top-4 right-4 z-50 transform translate-x-[400px] transition-transform duration-300">
-        <div class="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-6 py-4 rounded-lg shadow-2xl flex items-center gap-4 min-w-[350px]">
-            <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center animate-pulse">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-                </svg>
-            </div>
-            <div class="flex-1">
-                <p class="font-bold text-lg">Permintaan Konseling Baru!</p>
-                <p class="text-sm text-white/90" id="toast-message">Ada permintaan konseling baru dari siswa</p>
-            </div>
-            <button onclick="closeToast()" class="text-white/80 hover:text-white">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-            </button>
-        </div>
-    </div>
-</div>
-
-@push('scripts')
+@push('scripts') 
 <script>
-    let lastRequestCount = {{ $stats['pending_requests'] }};
-    let lastCheckTime = new Date();
-    let isFirstLoad = true;
-
-    // Function to show toast notification
-    function showToast(message) {
-        const toast = document.getElementById('toast-notification');
-        const toastMessage = document.getElementById('toast-message');
-        toastMessage.textContent = message;
-        
-        // Show toast
-        toast.classList.remove('translate-x-[400px]');
-        toast.classList.add('translate-x-0');
-        
-        // Play notification sound
-        playNotificationSound();
-        
-        // Auto hide after 5 seconds
-        setTimeout(() => {
-            closeToast();
-        }, 5000);
-    }
-
-    function closeToast() {
-        const toast = document.getElementById('toast-notification');
-        toast.classList.remove('translate-x-0');
-        toast.classList.add('translate-x-[400px]');
-    }
-
-    // Function to play notification sound
-    function playNotificationSound() {
-        // Create audio context for notification sound
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        oscillator.frequency.value = 800;
-        oscillator.type = 'sine';
-        
-        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-        
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.5);
-    }
+<script>
 
     // Function to update requests list
     function updateRequestsList(requests) {
@@ -405,6 +369,8 @@
         const badge = document.getElementById('requests-badge');
         const pendingCard = document.getElementById('pending-count');
         
+        if (!container) return;
+
         if (requests.length === 0) {
             container.innerHTML = `
                 <div class="text-center py-8">
@@ -415,83 +381,58 @@
                 </div>
             `;
         } else {
-            container.innerHTML = requests.map(request => `
-                <div class="bg-brand-dark/50 border border-brand-light/5 rounded-lg p-4 hover:border-yellow-500/30 transition-all animate-fade-in">
-                    <div class="flex justify-between items-start mb-2">
-                        <div class="flex-1">
-                            <p class="font-medium text-brand-light">${request.student_name}</p>
-                            <p class="text-sm text-brand-light/60 mt-1">${request.reason.substring(0, 60)}${request.reason.length > 60 ? '...' : ''}</p>
+            container.innerHTML = requests.map(request => {
+                let reasonHtml = '';
+                if (request.reason && request.reason.startsWith('[Topik:')) {
+                    const match = request.reason.match(/^\[Topik:\s*(.*?)\]/s);
+                    const topicName = match ? match[1] : 'Custom';
+                    const actualReason = request.reason.replace(/^\[Topik:.*?\]/s, '').trim();
+                    const reasonSnippet = actualReason.length > 50 ? actualReason.substring(0, 50) + '...' : actualReason;
+                    
+                    reasonHtml = `
+                        <span class="inline-block px-2 py-0.5 bg-brand-teal/10 text-brand-teal text-[10px] rounded uppercase font-bold tracking-tight mb-1">
+                            ${topicName}
+                        </span>
+                        <p class="text-xs italic opacity-80">${reasonSnippet}</p>
+                    `;
+                } else {
+                    const reasonSnippet = request.reason ? (request.reason.length > 80 ? request.reason.substring(0, 80) + '...' : request.reason) : '';
+                    reasonHtml = reasonSnippet;
+                }
+
+                return `
+                    <div class="bg-brand-dark/50 border border-brand-light/5 rounded-lg p-4 hover:border-yellow-500/30 transition-all">
+                        <div class="flex flex-col gap-2">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-medium text-brand-light">${request.student_name}</p>
+                                    <p class="text-[10px] text-brand-light/40 uppercase tracking-tight">${request.student_email || ''}</p>
+                                </div>
+                                <span class="text-[10px] text-brand-light/40">${request.requested_at}</span>
+                            </div>
+                            <div class="text-sm text-brand-light/60">
+                                ${reasonHtml}
+                            </div>
+                            <div class="pt-2 border-t border-brand-light/5 mt-1 flex justify-end">
+                                <a href="/admin/counseling_requests/${request.id}" class="text-[10px] font-bold text-brand-teal hover:underline uppercase tracking-wider">Lihat Detail →</a>
+                            </div>
                         </div>
                     </div>
-                    <p class="text-xs text-brand-light/40">${request.requested_at}</p>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
         
-        // Update badge
-        badge.textContent = requests.length;
-        
-        // Update pending count in stats card
-        if (pendingCard) {
-            pendingCard.textContent = requests.length;
-        }
+        if (badge) badge.textContent = requests.length;
+        if (pendingCard) pendingCard.textContent = requests.length;
     }
 
-    // Function to check for new requests
-    async function checkNewRequests() {
-        try {
-            const response = await fetch('{{ route('admin.check_new_requests') }}');
-            const data = await response.json();
-            
-            // Check if there are new requests
-            if (!isFirstLoad && data.count > lastRequestCount) {
-                const newRequestsCount = data.count - lastRequestCount;
-                showToast(`${newRequestsCount} permintaan konseling baru dari siswa!`);
-                
-                // Add pulse animation to pending requests card
-                const pendingCard = document.querySelector('.bg-brand-gray.rounded-xl.border.border-brand-light\\/10.p-6.hover\\:border-brand-teal\\/50');
-                if (pendingCard) {
-                    pendingCard.classList.add('animate-pulse');
-                    setTimeout(() => {
-                        pendingCard.classList.remove('animate-pulse');
-                    }, 2000);
-                }
-            }
-            
-            // Update the requests list
-            updateRequestsList(data.requests);
-            
-            // Update last count
-            lastRequestCount = data.count;
-            lastCheckTime = new Date();
-            isFirstLoad = false;
-            
-        } catch (error) {
-            console.error('Error checking new requests:', error);
-        }
+    // Initialize lastRequestCount for the global poller if it hasn't started yet
+    // This prevents a false "New Notification" on the very first poll after loading the dashboard
+    if (typeof lastRequestCount !== 'undefined') {
+        lastRequestCount = {{ $stats['pending_requests'] ?? 0 }};
+    } else {
+        window.lastRequestCount = {{ $stats['pending_requests'] ?? 0 }};
     }
-
-    // Check for new requests every 10 seconds
-    setInterval(checkNewRequests, 10000);
-
-    // Add fade-in animation style
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes fade-in {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        .animate-fade-in {
-            animation: fade-in 0.3s ease-out;
-        }
-    `;
-    document.head.appendChild(style);
 </script>
 @endpush
 @endsection

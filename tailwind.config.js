@@ -16,10 +16,10 @@ export default {
             },
             colors: {
                 brand: {
-                    dark: '#222831',
-                    gray: '#31363F',
-                    teal: '#76ABAE',
-                    light: '#EEEEEE',
+                    dark: '#111827', // Gray 900 - Deeper, more neutral dark
+                    gray: '#1F2937', // Gray 800 - Lighter card bg
+                    teal: '#2DD4BF', // Teal 400 - Vibrant teal
+                    light: '#F3F4F6', // Gray 100 - Crisp white/light
                 }
             }
         },

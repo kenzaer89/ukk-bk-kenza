@@ -14,6 +14,7 @@ class Topic extends Model
     protected $fillable = [
         'name',
         'description',
+        'is_custom',
     ];
     
     // Relasi many-to-many ke CounselingSession

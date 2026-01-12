@@ -12,31 +12,36 @@
             @method('PUT')
             
             <div>
-                <label for="student_id" class="block text-sm font-medium text-gray-300 mb-2">Pilih Siswa</label>
-                <select name="student_id" id="student_id" required
-                        class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-yellow-500 focus:border-yellow-500 text-sm text-white">
-                    <option value="">-- Cari Siswa --</option>
+                <label for="student_id" class="block text-sm font-medium text-gray-300 mb-2">Pilih Siswa <span class="text-red-500">*</span></label>
+                <select id="student_id_display" disabled
+                        class="w-full p-3 bg-gray-600 border border-gray-600 rounded-lg text-sm text-gray-400 cursor-not-allowed">
                     @foreach ($students as $student)
-                        <option value="{{ $student->id }}" {{ old('student_id', $achievement->student_id) == $student->id ? 'selected' : '' }}>
-                            {{ $student->name }} ({{ $student->nis }}) - {{ $student->schoolClass->name ?? 'Tanpa Kelas' }}
+                        <option value="{{ $student->id }}" {{ $achievement->student_id == $student->id ? 'selected' : '' }}>
+                            {{ $student->name }} (Absen: {{ $student->absen ?? '-' }}) - {{ $student->schoolClass->name ?? 'Tanpa Kelas' }}
                         </option>
                     @endforeach
                 </select>
+                <input type="hidden" name="student_id" value="{{ $achievement->student_id }}">
+                <p class="mt-1 text-xs text-gray-400">Siswa tidak dapat diubah setelah prestasi dibuat</p>
                 @error('student_id') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
             </div>
 
             <div>
-                <label for="name" class="block text-sm font-medium text-gray-300 mb-2">Nama Prestasi</label>
+                <label for="name" class="block text-sm font-medium text-gray-300 mb-2">Nama Prestasi <span class="text-red-500">*</span></label>
                 <input type="text" name="name" id="name" value="{{ old('name', $achievement->name) }}" required
-                       class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white">
+                       oninvalid="this.setCustomValidity('Harap isi nama prestasi')"
+                       oninput="this.setCustomValidity('')"
+                       class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:ring-yellow-500 focus:border-yellow-500">
                 @error('name') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
             </div>
             
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label for="level" class="block text-sm font-medium text-gray-300 mb-2">Tingkat Prestasi</label>
+                    <label for="level" class="block text-sm font-medium text-gray-300 mb-2">Tingkat Prestasi <span class="text-red-500">*</span></label>
                     <select name="level" id="level" required
-                            class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white">
+                            oninvalid="this.setCustomValidity('Pilih tingkat prestasi')"
+                            oninput="this.setCustomValidity('')"
+                            class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:ring-yellow-500 focus:border-yellow-500">
                         <option value="">-- Pilih Tingkat --</option>
                         @foreach ($levels as $level)
                             <option value="{{ $level }}" {{ old('level', $achievement->level) == $level ? 'selected' : '' }}>
@@ -47,24 +52,30 @@
                     @error('level') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
                 </div>
                 <div>
-                    <label for="achievement_date" class="block text-sm font-medium text-gray-300 mb-2">Tanggal Dicapai (Opsional)</label>
-                    <input type="date" name="achievement_date" id="achievement_date" value="{{ old('achievement_date', $achievement->achievement_date ? $achievement->achievement_date->format('Y-m-d') : null) }}"
-                           class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white">
+                    <label for="achievement_date" class="block text-sm font-medium text-gray-300 mb-2">Tanggal Dicapai <span class="text-red-500">*</span></label>
+                    <input type="date" name="achievement_date" id="achievement_date" value="{{ old('achievement_date', $achievement->achievement_date ? $achievement->achievement_date->format('Y-m-d') : null) }}" required
+                           oninvalid="this.setCustomValidity('Pilih tanggal pencapaian prestasi')"
+                           oninput="this.setCustomValidity('')"
+                           class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:ring-yellow-500 focus:border-yellow-500">
                     @error('achievement_date') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
                 </div>
             </div>
 
             <div>
-                <label for="point" class="block text-sm font-medium text-gray-300 mb-2">Poin Prestasi</label>
-                <input type="number" name="point" id="point" value="{{ old('point', $achievement->point) }}" required min="1"
-                       class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white">
+                <label for="point" class="block text-sm font-medium text-gray-300 mb-2">Poin Prestasi <span class="text-red-500">*</span></label>
+                <input type="number" name="point" id="point" value="{{ old('point', $achievement->point) }}" required min="1" max="150"
+                       oninvalid="this.setCustomValidity('Masukkan jumlah poin (1-150)')"
+                       oninput="this.setCustomValidity('')"
+                       class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:ring-yellow-500 focus:border-yellow-500">
                 <p class="text-xs text-gray-400 mt-1">Mengubah poin akan menyesuaikan total poin siswa secara otomatis</p>
                 @error('point') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
             </div>
 
             <div>
-                <label for="description" class="block text-sm font-medium text-gray-300 mb-2">Deskripsi Prestasi</label>
+                <label for="description" class="block text-sm font-medium text-gray-300 mb-2">Deskripsi Prestasi <span class="text-red-500">*</span></label>
                 <textarea name="description" id="description" rows="3" required
+                          oninvalid="this.setCustomValidity('Harap isi deskripsi prestasi')"
+                          oninput="this.setCustomValidity('')"
                           class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white">{{ old('description', $achievement->description) }}</textarea>
                 @error('description') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
             </div>

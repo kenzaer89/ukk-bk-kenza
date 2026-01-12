@@ -12,7 +12,7 @@
         @php $student = $childData['student']; @endphp
         
         <!-- Student Info Card -->
-        <div class="glass p-6 mb-6">
+        <div class="bg-brand-gray border border-brand-light/10 rounded-xl p-6 mb-6">
             <div class="flex items-center gap-4">
                 <div class="w-16 h-16 rounded-full bg-gradient-to-br from-brand-teal to-cyan-600 flex items-center justify-center text-white font-bold text-2xl shadow-lg">
                     {{ substr($student->name, 0, 1) }}
@@ -30,7 +30,7 @@
         <!-- Stats Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <!-- Total Violations -->
-            <div class="glass p-6 hover:shadow-[0_0_30px_rgba(239,68,68,0.2)] transition-all duration-300">
+            <div class="bg-brand-gray border border-brand-light/10 rounded-xl p-6 hover:shadow-[0_0_30px_rgba(239,68,68,0.2)] transition-all duration-300">
                 <div class="flex items-center justify-between mb-4">
                     <div class="w-12 h-12 rounded-lg bg-red-500/10 flex items-center justify-center">
                         <svg class="w-6 h-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -43,7 +43,7 @@
             </div>
 
             <!-- Total Achievements -->
-            <div class="glass p-6 hover:shadow-[0_0_30px_rgba(234,179,8,0.2)] transition-all duration-300">
+            <div class="bg-brand-gray border border-brand-light/10 rounded-xl p-6 hover:shadow-[0_0_30px_rgba(234,179,8,0.2)] transition-all duration-300">
                 <div class="flex items-center justify-between mb-4">
                     <div class="w-12 h-12 rounded-lg bg-yellow-500/10 flex items-center justify-center">
                         <svg class="w-6 h-6 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -56,7 +56,7 @@
             </div>
 
             <!-- Total Sessions -->
-            <div class="glass p-6 hover:shadow-[0_0_30px_rgba(59,130,246,0.2)] transition-all duration-300">
+            <div class="bg-brand-gray border border-brand-light/10 rounded-xl p-6 hover:shadow-[0_0_30px_rgba(59,130,246,0.2)] transition-all duration-300">
                 <div class="flex items-center justify-between mb-4">
                     <div class="w-12 h-12 rounded-lg bg-blue-500/10 flex items-center justify-center">
                         <svg class="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -69,7 +69,7 @@
             </div>
 
             <!-- Status -->
-            <div class="glass p-6 hover:shadow-[0_0_30px_rgba(45,212,191,0.2)] transition-all duration-300">
+            <div class="bg-brand-gray border border-brand-light/10 rounded-xl p-6 hover:shadow-[0_0_30px_rgba(45,212,191,0.2)] transition-all duration-300">
                 <div class="flex items-center justify-between mb-4">
                     <div class="w-12 h-12 rounded-lg bg-brand-teal/10 flex items-center justify-center">
                         <svg class="w-6 h-6 text-brand-teal" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -85,7 +85,7 @@
         <!-- Recent Activities Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Pelanggaran Terbaru -->
-            <div class="glass p-6">
+            <div class="bg-brand-gray border border-brand-light/10 rounded-xl p-6">
                 <div class="flex items-center gap-3 mb-6 pb-4 border-b border-white/10">
                     <div class="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center">
                         <svg class="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -156,7 +156,7 @@
             </div>
 
             <!-- Prestasi Terbaru -->
-            <div class="glass p-6">
+            <div class="bg-brand-gray border border-brand-light/10 rounded-xl p-6">
                 <div class="flex items-center gap-3 mb-6 pb-4 border-b border-white/10">
                     <div class="w-10 h-10 rounded-lg bg-yellow-500/10 flex items-center justify-center">
                         <svg class="w-5 h-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -245,7 +245,7 @@
         </div>
 
         <!-- Riwayat Konseling -->
-        <div class="glass p-6 mt-6">
+        <div class="bg-brand-gray border border-brand-light/10 rounded-xl p-6 mt-6">
             <div class="flex items-center gap-3 mb-6 pb-4 border-b border-white/10">
                 <div class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
                     <svg class="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -344,7 +344,7 @@
         </div>
 
     @empty
-        <div class="glass p-12 text-center">
+        <div class="bg-brand-gray border border-brand-light/10 rounded-xl p-12 text-center">
             <svg class="w-20 h-20 text-brand-light/20 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
             </svg>

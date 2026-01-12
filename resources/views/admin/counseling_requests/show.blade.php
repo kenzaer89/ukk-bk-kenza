@@ -96,8 +96,33 @@
                     
                     <div class="space-y-2">
                         <p class="text-xs text-brand-light/60 uppercase tracking-wider font-semibold">Alasan Konseling</p>
-                        <div class="bg-brand-dark/50 rounded-lg p-5 border border-brand-light/5">
-                            <p class="text-brand-light leading-relaxed whitespace-pre-wrap">{{ $counseling_request->reason }}</p>
+                        <div class="bg-brand-dark/50 rounded-xl p-6 border border-brand-light/10 shadow-inner">
+                            @if(str_starts_with($counseling_request->reason, '[Topik:'))
+                                @php
+                                    preg_match('/^\[Topik:\s*(.*?)\]\s*(.*)$/s', $counseling_request->reason, $matches);
+                                    $topicName = $matches[1] ?? 'Custom';
+                                    $actualReason = trim($matches[2] ?? '');
+                                @endphp
+                                <div class="mb-4 pb-4 border-b border-brand-light/10">
+                                    <span class="text-xs font-bold text-brand-teal uppercase tracking-widest block mb-1">Topik Custom</span>
+                                    <p class="text-lg font-semibold text-brand-light">{{ $topicName }}</p>
+                                </div>
+                                <div class="space-y-1">
+                                    <span class="text-xs font-bold text-brand-light/40 uppercase tracking-widest block">Detail Alasan</span>
+                                    <p class="text-brand-light leading-relaxed whitespace-pre-wrap">{{ $actualReason }}</p>
+                                </div>
+                            @else
+                                @if($counseling_request->topic)
+                                    <div class="mb-4 pb-4 border-b border-brand-light/10">
+                                        <span class="text-xs font-bold text-brand-teal uppercase tracking-widest block mb-1">Topik</span>
+                                        <p class="text-lg font-semibold text-brand-light">{{ $counseling_request->topic->name }}</p>
+                                    </div>
+                                @endif
+                                <div class="space-y-1">
+                                    <span class="text-xs font-bold text-brand-light/40 uppercase tracking-widest block">Detail Alasan</span>
+                                    <p class="text-brand-light leading-relaxed whitespace-pre-wrap">{{ $counseling_request->reason }}</p>
+                                </div>
+                            @endif
                         </div>
                     </div>
                     
@@ -106,6 +131,23 @@
                         <div class="space-y-1">
                             <p class="text-xs text-brand-light/60 uppercase tracking-wider font-semibold">Ditangani Oleh</p>
                             <p class="text-brand-light font-medium">{{ $counseling_request->teacher->name }}</p>
+                        </div>
+                    </div>
+                    @endif
+                    
+                    @if($counseling_request->notes)
+                    <div class="pt-4 border-t border-brand-light/10">
+                        <div class="space-y-2">
+                            <p class="text-xs text-brand-light/60 uppercase tracking-wider font-semibold">
+                                @if($counseling_request->status == 'rejected')
+                                    Alasan Penolakan
+                                @else
+                                    Catatan Guru BK
+                                @endif
+                            </p>
+                            <div class="bg-brand-dark/50 rounded-lg p-4 border border-brand-light/5">
+                                <p class="text-brand-light leading-relaxed whitespace-pre-wrap">{{ $counseling_request->notes }}</p>
+                            </div>
                         </div>
                     </div>
                     @endif

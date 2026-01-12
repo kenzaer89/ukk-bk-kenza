@@ -14,9 +14,11 @@ class CounselingRequest extends Model
     protected $fillable = [
         'student_id',
         'teacher_id', // Bisa null saat diajukan
+        'topic_id',   // ID topik konseling
         'reason',     // Deskripsi/Topik dari form siswa
         'status',     // default 'pending'
         'requested_at',
+        'notes',      // Catatan admin (untuk penolakan/penundaan)
     ];
 
     protected $casts = [
@@ -33,6 +35,12 @@ class CounselingRequest extends Model
     public function teacher()
     {
         return $this->belongsTo(User::class, 'teacher_id');
+    }
+
+    // Relasi ke Topic
+    public function topic()
+    {
+        return $this->belongsTo(Topic::class, 'topic_id');
     }
 
     // Relasi ke Jadwal (jika sudah disetujui dan dijadwalkan)

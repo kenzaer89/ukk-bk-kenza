@@ -37,7 +37,7 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'role' => ['required', 'string', 'in:student,parent,wali_kelas'],
             'class_id' => ['nullable', 'required_if:role,student', 'exists:classes,id'],
-            'absen' => ['nullable', 'required_if:role,student', 'string', 'max:10'],
+            'absen' => ['nullable', 'required_if:role,student', 'integer', 'min:1'],
             'student_id' => ['nullable', 'required_if:role,parent', 'exists:users,id'],
         ]);
 

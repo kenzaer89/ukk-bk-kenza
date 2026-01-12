@@ -58,9 +58,8 @@
     </div>
 
     <div class="mt-6 flex space-x-3">
-        <a href="{{ route('admin.counseling_sessions.edit', $session) }}" 
-           class="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-lg transition">Edit Sesi</a>
-        <a href="{{ route('admin.counseling_sessions.index') }}" 
+
+        <a href="{{ route('admin.schedules.index', ['status' => 'completed']) }}" 
            class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg transition">← Kembali ke Riwayat</a>
     </div>
 </div>

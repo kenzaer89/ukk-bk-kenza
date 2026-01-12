@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CounselingSchedule;
 use App\Models\CounselingRequest;
 use App\Models\User;
+use App\Models\Topic;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -14,14 +15,29 @@ class ScheduleController extends Controller
     /**
      * Menampilkan daftar semua jadwal konseling. (READ - Index)
      */
-    public function index()
+    public function index(Request $request)
     {
-        $schedules = CounselingSchedule::with(['student', 'teacher', 'counselingRequest'])
-                        ->orderBy('scheduled_date', 'desc')
-                        ->orderBy('start_time', 'desc')
+        $query = CounselingSchedule::with(['student', 'teacher', 'counselingRequest', 'topic', 'session']);
+
+        // Filter by status if provided
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $schedules = $query->latest('scheduled_date')
+                        ->latest('start_time')
+                        ->latest()
                         ->paginate(10);
         
-        return view('admin.schedules.index', compact('schedules'));
+        // Count for stats
+        $counts = [
+            'all' => CounselingSchedule::count(),
+            'scheduled' => CounselingSchedule::where('status', 'scheduled')->count(),
+            'completed' => CounselingSchedule::where('status', 'completed')->count(),
+            'cancelled' => CounselingSchedule::where('status', 'cancelled')->count(),
+        ];
+        
+        return view('admin.schedules.index', compact('schedules', 'counts'));
     }
 
     /**
@@ -30,19 +46,20 @@ class ScheduleController extends Controller
     public function create(Request $request)
     {
         $students = User::where('role', 'student')->with('schoolClass')->orderBy('name')->get(); 
-        $teachers = User::whereIn('role', ['guru_bk', 'admin'])->orderBy('name')->get();
+        $teachers = User::where('role', 'guru_bk')->orderBy('name')->get();
+        $topics = Topic::where('is_custom', false)->orderBy('name')->get();
         
         // Cek apakah ada request_id yang dilewatkan (dari persetujuan permintaan)
         $requestId = $request->query('request_id');
         $requestData = null;
         if ($requestId) {
-            $requestData = CounselingRequest::with('student')->find($requestId);
+            $requestData = CounselingRequest::with(['student', 'topic'])->find($requestId);
             if (!$requestData || $requestData->status !== 'pending') {
                 return redirect()->route('admin.schedules.index')->with('error', 'Permintaan tidak valid atau sudah diproses.');
             }
         }
         
-        return view('admin.schedules.create', compact('students', 'teachers', 'requestData'));
+        return view('admin.schedules.create', compact('students', 'teachers', 'requestData', 'topics'));
     }
 
     /**
@@ -53,19 +70,46 @@ class ScheduleController extends Controller
         $request->validate([
             'student_id' => 'required|exists:users,id',
             'teacher_id' => 'required|exists:users,id',
-            'scheduled_date' => 'required|date',
+            'topic_id' => 'required|string', // Bisa 'custom' atau ID numerik
+            'custom_topic' => 'nullable|string|max:255',
+            'scheduled_date' => 'required|date|after_or_equal:today',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
-            'location' => 'nullable|string|max:255',
+            'location' => 'required|string|max:255',
             'counseling_request_id' => 'nullable|exists:counseling_requests,id',
         ], [
             'end_time.after' => 'Waktu selesai harus lebih besar dari waktu mulai.',
+            'student_id.required' => 'Wajib memilih siswa.',
+            'teacher_id.required' => 'Wajib memilih guru BK.',
+            'topic_id.required' => 'Wajib memilih topik konseling.',
+            'scheduled_date.required' => 'Wajib mengisi tanggal sesi.',
+            'start_time.required' => 'Wajib mengisi waktu mulai.',
+            'end_time.required' => 'Wajib mengisi waktu selesai.',
+            'location.required' => 'Wajib mengisi lokasi sesi.',
         ]);
+        
+        // Logic Topik: Gunakan topik yang ada atau buat baru
+        $topicId = null;
+        if ($request->topic_id === 'custom' && $request->filled('custom_topic')) {
+            $customName = trim($request->custom_topic);
+            $topic = Topic::whereRaw('LOWER(name) = ?', [mb_strtolower($customName)])->first();
+            if (!$topic) {
+                $topic = Topic::create([
+                    'name' => $customName,
+                    'description' => 'Topik custom dibuat saat penjadwalan.',
+                    'is_custom' => true
+                ]);
+            }
+            $topicId = $topic->id;
+        } else {
+            $topicId = $request->topic_id;
+        }
         
         // 1. Simpan Jadwal Konseling
         $schedule = CounselingSchedule::create([
             'student_id' => $request->student_id,
             'teacher_id' => $request->teacher_id,
+            'topic_id' => $topicId,
             'scheduled_date' => $request->scheduled_date,
             'start_time' => $request->start_time,
             'end_time' => $request->end_time,
@@ -82,6 +126,13 @@ class ScheduleController extends Controller
             }
         }
 
+        // 3. Notifikasi ke Siswa
+        \App\Models\Notification::create([
+            'user_id' => $request->student_id,
+            'message' => 'Jadwal konseling baru telah dibuat untuk Anda pada ' . $request->scheduled_date . ' pukul ' . $request->start_time,
+            'status' => 'unread',
+        ]);
+
         return redirect()->route('admin.schedules.index')
                          ->with('success', 'Jadwal konseling berhasil dibuat.');
     }
@@ -92,9 +143,10 @@ class ScheduleController extends Controller
     public function edit(CounselingSchedule $schedule)
     {
         $students = User::where('role', 'student')->with('schoolClass')->orderBy('name')->get();
-        $teachers = User::whereIn('role', ['guru_bk', 'admin'])->orderBy('name')->get();
+        $teachers = User::where('role', 'guru_bk')->orderBy('name')->get();
+        $topics = Topic::where('is_custom', false)->orderBy('name')->get();
         
-        return view('admin.schedules.edit', compact('schedule', 'students', 'teachers'));
+        return view('admin.schedules.edit', compact('schedule', 'students', 'teachers', 'topics'));
     }
 
     /**
@@ -105,15 +157,49 @@ class ScheduleController extends Controller
         $request->validate([
             'student_id' => 'required|exists:users,id',
             'teacher_id' => 'required|exists:users,id',
-            'scheduled_date' => 'required|date',
+            'topic_id' => 'required|string',
+            'custom_topic' => 'nullable|string|max:255',
+            'scheduled_date' => 'required|date|after_or_equal:today',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
-            'location' => 'nullable|string|max:255',
+            'location' => 'required|string|max:255',
         ], [
             'end_time.after' => 'Waktu selesai harus lebih besar dari waktu mulai.',
+            'student_id.required' => 'Wajib memilih siswa.',
+            'teacher_id.required' => 'Wajib memilih guru BK.',
+            'topic_id.required' => 'Wajib memilih topik konseling.',
+            'scheduled_date.required' => 'Wajib mengisi tanggal sesi.',
+            'start_time.required' => 'Wajib mengisi waktu mulai.',
+            'end_time.required' => 'Wajib mengisi waktu selesai.',
+            'location.required' => 'Wajib mengisi lokasi sesi.',
         ]);
 
-        $schedule->update($request->all());
+        // Logic Topik
+        $topicId = null;
+        if ($request->topic_id === 'custom' && $request->filled('custom_topic')) {
+            $customName = trim($request->custom_topic);
+            $topic = Topic::whereRaw('LOWER(name) = ?', [mb_strtolower($customName)])->first();
+            if (!$topic) {
+                $topic = Topic::create([
+                    'name' => $customName,
+                    'description' => 'Topik custom dibuat saat pembaruan jadwal.',
+                    'is_custom' => true
+                ]);
+            }
+            $topicId = $topic->id;
+        } else {
+            $topicId = $request->topic_id;
+        }
+
+        $schedule->update([
+            'student_id' => $request->student_id,
+            'teacher_id' => $request->teacher_id,
+            'topic_id' => $topicId,
+            'scheduled_date' => $request->scheduled_date,
+            'start_time' => $request->start_time,
+            'end_time' => $request->end_time,
+            'location' => $request->location,
+        ]);
 
         return redirect()->route('admin.schedules.index')
                          ->with('success', 'Jadwal konseling berhasil diperbarui.');
@@ -124,19 +210,32 @@ class ScheduleController extends Controller
      */
     public function destroy(CounselingSchedule $schedule)
     {
-        // Pencegahan: Jangan hapus jika sudah memiliki sesi terkait
+        // Jika status SELESAI, kita izinkan Hapus Permanen (termasuk sesinya)
+    if ($schedule->status === 'completed') {
         if ($schedule->session) {
-            return redirect()->back()->with('error', 'Jadwal tidak dapat dihapus karena sudah memiliki Sesi Konseling terkait.');
+            $schedule->session->delete();
         }
-        
-        // Jika jadwal berasal dari permintaan, kembalikan status permintaan ke pending
-        if ($schedule->counselingRequest) {
-            $schedule->counselingRequest->update(['status' => 'pending', 'teacher_id' => null]);
-        }
-        
         $schedule->delete();
-
-        return redirect()->route('admin.schedules.index')
-                         ->with('success', 'Jadwal konseling berhasil dibatalkan dan dihapus.');
+        return redirect()->route('admin.schedules.index')->with('success', 'Data sesi konseling berhasil dihapus permanen.');
     }
+
+    // Jika status sudah DIBATALKAN, kita izinkan Hapus Permanen catatan tersebut
+    if ($schedule->status === 'cancelled') {
+        $schedule->delete();
+        return redirect()->route('admin.schedules.index')->with('success', 'Catatan jadwal yang dibatalkan telah dihapus dari sistem.');
+    }
+
+    // Pencegahan pembatalan jika sudah ada draf sesi
+    if ($schedule->session) {
+        return redirect()->back()->with('error', 'Jadwal tidak dapat dibatalkan karena sudah memiliki Sesi Konseling. Silakan hapus sesi terlebih dahulu.');
+    }
+    
+    // Ubah status jadwal menjadi DIBATALKAN (bukan menghapus langsung agar siswa tahu)
+    $schedule->update(['status' => 'cancelled']);
+    
+    // Sinkronisasi ke CounselingRequest ditangani oleh Boot model CounselingSchedule yang telah kita buat
+    
+    return redirect()->route('admin.schedules.index')
+                     ->with('success', 'Jadwal konseling berhasil dibatalkan. Status pada portal siswa juga berubah menjadi Dibatalkan.');
+}
 }

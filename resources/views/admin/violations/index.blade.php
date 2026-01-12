@@ -24,14 +24,14 @@
             <table class="min-w-full leading-normal">
                 <thead>
                     <tr class="text-xs font-semibold tracking-wider text-left text-gray-400 uppercase border-b border-gray-700">
-                        <th class="px-5 py-3">No</th>
-                        <th class="px-5 py-3">Siswa</th>
-                        <th class="px-5 py-3">Kelas</th>
-                        <th class="px-5 py-3">Jenis Pelanggaran</th>
-                        <th class="px-5 py-3">Poin</th>
-                        <th class="px-5 py-3">Status</th>
-                        <th class="px-5 py-3">Tanggal</th>
-                        <th class="px-5 py-3">Aksi</th>
+                        <th class="px-5 py-3 text-gray-400 font-bold uppercase">NO</th>
+                        <th class="px-5 py-3 text-gray-400 font-bold uppercase">SISWA</th>
+                        <th class="px-5 py-3 text-gray-400 font-bold uppercase">KELAS</th>
+                        <th class="px-5 py-3 text-gray-400 font-bold uppercase">JENIS PELANGGARAN</th>
+                        <th class="px-5 py-3 text-gray-400 font-bold uppercase">POIN</th>
+                        <th class="px-5 py-3 text-gray-400 font-bold uppercase">STATUS</th>
+                        <th class="px-5 py-3 text-gray-400 font-bold uppercase">TANGGAL</th>
+                        <th class="px-5 py-3 text-gray-400 font-bold uppercase">AKSI</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -40,34 +40,40 @@
                             <td class="px-5 py-5 text-sm">{{ $loop->iteration }}</td>
                             <td class="px-5 py-5 text-sm font-medium text-white">{{ $violation->student->name ?? 'N/A' }}</td>
                             <td class="px-5 py-5 text-sm">{{ $violation->student->schoolClass->name ?? 'N/A' }}</td>
-                            <td class="px-5 py-5 text-sm text-red-400">{{ $violation->rule->name ?? 'Aturan Dihapus' }}</td>
+                            <td class="px-5 py-5 text-sm text-red-400 font-medium">{{ $violation->rule->name ?? 'Aturan Dihapus' }}</td>
                             <td class="px-5 py-5 text-sm text-red-500 font-bold">{{ $violation->rule->points ?? 0 }}</td>
                             <td class="px-5 py-5 text-sm">
                                 @if($violation->status == 'resolved')
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-green-500/20 text-green-500">
                                         Selesai
                                     </span>
                                 @elseif($violation->status == 'pending')
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-yellow-500/20 text-yellow-500">
                                         Menunggu
                                     </span>
                                 @else
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-gray-500/20 text-brand-light">
                                         {{ ucfirst($violation->status) }}
                                     </span>
                                 @endif
                             </td>
                             <td class="px-5 py-5 text-sm">{{ \Carbon\Carbon::parse($violation->violation_date)->format('d M Y') }}</td>
-                            <td class="px-5 py-5 text-sm space-x-2">
-                                <a href="{{ route('admin.violations.edit', $violation) }}" 
-                                   class="text-yellow-400 hover:text-yellow-300">Edit</a>
-                                <form action="{{ route('admin.violations.destroy', $violation) }}" method="POST" class="inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" 
-                                            class="text-red-400 hover:text-red-300"
-                                            onclick="return confirm('Apakah Anda yakin ingin menghapus pelanggaran ini?')">Hapus</button>
-                                </form>
+                            <td class="px-5 py-5 text-sm">
+                                <div class="flex items-center gap-2">
+                                    <a href="{{ route('admin.violations.edit', $violation) }}" 
+                                       class="inline-flex items-center px-3 py-1 bg-yellow-600/20 text-yellow-500 border border-yellow-500/50 rounded-md hover:bg-yellow-600 hover:text-white transition text-xs font-bold">
+                                        Edit
+                                    </a>
+                                    <form action="{{ route('admin.violations.destroy', $violation) }}" method="POST" class="inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" 
+                                                class="inline-flex items-center px-3 py-1 bg-red-600/10 text-red-500 border border-red-600/30 rounded-md hover:bg-red-600 hover:text-white transition text-xs font-bold"
+                                                onclick="return confirm('Apakah Anda yakin ingin menghapus pelanggaran ini?')">
+                                            Hapus
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     @empty

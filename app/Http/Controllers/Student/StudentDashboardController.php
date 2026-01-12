@@ -22,26 +22,33 @@ class StudentDashboardController extends Controller
         $upcomingSessions = CounselingSchedule::with('teacher')
             ->where('student_id', $user->id)
             ->whereDate('scheduled_date', '>=', now())
+            ->where(function($query) {
+                // Only show if status is scheduled AND no completed/cancelled session exists
+                $query->where('status', 'scheduled')
+                      ->whereDoesntHave('session', function($q) {
+                          $q->whereIn('status', ['completed', 'cancelled']);
+                      });
+            })
             ->orderBy('scheduled_date', 'asc')
-            ->limit(5)
+            ->limit(3)
             ->get();
 
         $recentSessions = CounselingSession::with('counselor')
             ->where('student_id', $user->id)
             ->where('status', 'completed')
             ->orderBy('session_date', 'desc')
-            ->limit(5)
+            ->limit(3)
             ->get();
 
         // --- Pelanggaran & Prestasi ---
         $recentViolations = Violation::with('rule')
             ->where('student_id', $user->id)
             ->latest()
-            ->limit(5)
+            ->limit(3)
             ->get();
 
         $recentAchievements = Achievement::where('student_id', $user->id)
-            ->latest()->limit(5)->get();
+            ->latest()->limit(3)->get();
 
         // --- Permintaan Konseling ---
         $recentRequests = CounselingRequest::where('student_id', $user->id)
@@ -49,7 +56,10 @@ class StudentDashboardController extends Controller
 
         // --- Statistics ---
         $stats = [
-            'scheduled_sessions' => CounselingSchedule::where('student_id', $user->id)->count(),
+            'scheduled_sessions' => CounselingSchedule::where('student_id', $user->id)
+                ->where('status', 'scheduled')
+                ->whereDate('scheduled_date', '>=', now())
+                ->count(),
             'pending_requests' => CounselingRequest::where('student_id', $user->id)->where('status', 'pending')->count(),
             'violations' => Violation::where('student_id', $user->id)->count(),
             'achievements' => Achievement::where('student_id', $user->id)->count(),
@@ -100,5 +110,63 @@ class StudentDashboardController extends Controller
             ->paginate(10);
 
         return view('student.achievements.index', compact('achievements'));
+    }
+
+    public function schedules(Request $request)
+    {
+        $status = $request->status;
+        $query = CounselingSchedule::with(['teacher', 'session', 'topic', 'counselingRequest'])
+            ->where('student_id', Auth::id());
+        
+        // Apply status filter
+        if ($status && in_array($status, ['scheduled', 'completed', 'cancelled'])) {
+            if ($status === 'scheduled') {
+                // Terjadwal: status = scheduled and date in future
+                $query->where('status', 'scheduled')
+                      ->whereDate('scheduled_date', '>=', now());
+            } elseif ($status === 'completed') {
+                // Selesai: has session with completed status
+                $query->whereHas('session', function($q) {
+                    $q->where('status', 'completed');
+                });
+            } elseif ($status === 'cancelled') {
+                // Dibatalkan: status = cancelled OR session status = cancelled
+                $query->where(function($q) {
+                    $q->where('status', 'cancelled')
+                      ->orWhereHas('session', function($sq) {
+                          $sq->where('status', 'cancelled');
+                      });
+                });
+            }
+        }
+        
+        $schedules = $query->latest('scheduled_date')
+                          ->latest('start_time')
+                          ->latest()
+                          ->paginate(10);
+        
+        // Calculate counts for each status
+        $counts = [
+            'all' => CounselingSchedule::where('student_id', Auth::id())->count(),
+            'scheduled' => CounselingSchedule::where('student_id', Auth::id())
+                ->where('status', 'scheduled')
+                ->whereDate('scheduled_date', '>=', now())
+                ->count(),
+            'completed' => CounselingSchedule::where('student_id', Auth::id())
+                ->whereHas('session', function($q) {
+                    $q->where('status', 'completed');
+                })
+                ->count(),
+            'cancelled' => CounselingSchedule::where('student_id', Auth::id())
+                ->where(function($q) {
+                    $q->where('status', 'cancelled')
+                      ->orWhereHas('session', function($sq) {
+                          $sq->where('status', 'cancelled');
+                      });
+                })
+                ->count(),
+        ];
+
+        return view('student.schedules.index', compact('schedules', 'counts'));
     }
 }

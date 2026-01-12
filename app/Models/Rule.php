@@ -16,6 +16,7 @@ class Rule extends Model
         'points', // Poin yang dikurangi (nilai positif)
         'description',
         'category',
+        'is_custom',
     ];
     
     // Relasi ke Pelanggaran
