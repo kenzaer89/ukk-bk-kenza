@@ -4,7 +4,14 @@
 
 @section('content')
 <div class="p-6">
-    <h1 class="text-3xl font-bold mb-6 text-white">➕ Catat Prestasi Siswa</h1>
+    <div class="flex items-center gap-4 mb-6">
+        <span class="p-2 bg-indigo-500/20 rounded-lg">
+            <svg class="w-8 h-8 text-brand-teal" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+            </svg>
+        </span>
+        <h1 class="text-3xl font-bold text-white uppercase tracking-tight">Catat Prestasi Siswa</h1>
+    </div>
 
     <div class="bg-gray-800 rounded-xl shadow-lg p-8 max-w-xl">
         <form action="{{ route('admin.achievements.store') }}" method="POST" class="space-y-6">
@@ -55,6 +62,8 @@
                 <div>
                     <label for="achievement_date" class="block text-sm font-medium text-gray-300 mb-2">Tanggal Dicapai <span class="text-red-500">*</span></label>
                     <input type="date" name="achievement_date" id="achievement_date" value="{{ old('achievement_date') }}" required
+                           max="{{ date('Y-m-d') }}"
+                           style="color-scheme: dark;"
                            oninvalid="this.setCustomValidity('Pilih tanggal pencapaian prestasi')"
                            oninput="this.setCustomValidity('')"
                            class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:ring-green-500 focus:border-green-500">
@@ -63,19 +72,19 @@
             </div>
 
             <div>
-                <label for="point" class="block text-sm font-medium text-gray-300 mb-2">Poin Prestasi <span class="text-red-500">*</span></label>
-                <input type="number" name="point" id="point" value="{{ old('point', 10) }}" required min="1" max="150"
-                       placeholder="Contoh: 10"
-                       oninvalid="this.setCustomValidity('Masukkan jumlah poin (1-150)')"
+                <label for="point" class="block text-sm font-medium text-gray-300 mb-2">Poin Prestasi</label>
+                <input type="number" name="point" id="point" value="{{ old('point') }}" min="0" max="150"
+                       placeholder="Contoh: 10 (Kosongkan jika tidak ada poin)"
+                       oninvalid="this.setCustomValidity('Masukkan jumlah poin (0-150)')"
                        oninput="this.setCustomValidity('')"
                        class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:ring-green-500 focus:border-green-500">
-                <p class="text-xs text-gray-400 mt-1">Poin akan ditambahkan ke total poin siswa</p>
+                <p class="text-xs text-gray-400 mt-1 italic">Opsional: Poin akan ditambahkan ke total poin siswa</p>
                 @error('point') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
             </div>
 
             <div>
                 <label for="description" class="block text-sm font-medium text-gray-300 mb-2">Deskripsi Prestasi <span class="text-red-500">*</span></label>
-                <textarea name="description" id="description" rows="3" required
+                <textarea name="description" id="description" rows="3" required maxlength="500"
                           placeholder="Jelaskan detail prestasi yang diraih..."
                           oninvalid="this.setCustomValidity('Harap isi deskripsi prestasi')"
                           oninput="this.setCustomValidity('')"

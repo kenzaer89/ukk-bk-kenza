@@ -7,7 +7,12 @@
     <!-- Header -->
     <div class="mb-8">
         <h1 class="text-3xl font-bold text-brand-light mb-2 flex items-center gap-3">
-            <span>📩</span> Permintaan Konseling Saya
+            <span class="p-2 bg-indigo-500/20 rounded-lg">
+                <svg class="w-8 h-8 text-brand-teal" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+            </span>
+            Permintaan Konseling Saya
         </h1>
         <p class="text-brand-light/60">Kelola dan pantau status permintaan konseling Anda</p>
     </div>
@@ -44,12 +49,12 @@
 
     <!-- Success/Error Messages -->
     @if (session('success'))
-        <div class="mb-6 p-4 bg-indigo-500/10 border border-indigo-500/30 rounded-xl">
+        <div class="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl">
             <div class="flex items-center gap-3">
-                <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
-                <p class="text-indigo-400 font-medium">{{ session('success') }}</p>
+                <p class="text-emerald-400 font-medium">{{ session('success') }}</p>
             </div>
         </div>
     @endif
@@ -60,30 +65,37 @@
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="text-xs font-semibold tracking-wider text-left text-gray-400 uppercase border-b border-gray-700 bg-gray-800/50">
-                        <th class="px-8 py-4">ALASAN</th>
+                        <th class="px-8 py-4">TOPIK DAN ALASAN</th>
                         <th class="px-8 py-4">TANGGAL PERMINTAAN</th>
                         <th class="px-8 py-4">STATUS</th>
-                        <th class="px-8 py-4 text-right">AKSI</th>
+                        <th class="px-8 py-4 text-center">AKSI</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-700">
                     @forelse($requests as $request)
                     <tr class="hover:bg-gray-700 transition duration-150 border-b border-gray-700">
                         <td class="px-8 py-6">
-                            @if(str_starts_with($request->reason, '[Topik:'))
+                            @if($request->topic)
+                                <div class="flex flex-col gap-1">
+                                    <span class="inline-flex items-center w-fit px-2 py-0.5 rounded bg-brand-teal/10 text-brand-teal text-[10px] font-bold uppercase tracking-wider">
+                                        {{ $request->topic->name }}
+                                    </span>
+                                    <p class="text-brand-light/80 text-sm truncate max-w-[300px]" title="{{ $request->reason }}">{{ $request->reason }}</p>
+                                </div>
+                            @elseif(str_starts_with($request->reason, '[Topik:'))
                                 @php
                                     preg_match('/^\[Topik:\s*(.*?)\]\s*(.*)$/s', $request->reason, $matches);
                                     $topicName = $matches[1] ?? 'Custom';
                                     $actualReason = trim($matches[2] ?? '');
                                 @endphp
                                 <div class="flex flex-col gap-1">
-                                    <span class="inline-flex items-center w-fit px-2 py-0.5 rounded bg-indigo-900/50 text-indigo-300 text-[10px] font-bold uppercase tracking-wider">
+                                    <span class="inline-flex items-center w-fit px-2 py-0.5 rounded bg-brand-teal/10 text-brand-teal text-[10px] font-bold uppercase tracking-wider">
                                         {{ $topicName }}
                                     </span>
-                                    <p class="text-brand-light/80 text-sm line-clamp-1">{{ $actualReason }}</p>
+                                    <p class="text-brand-light/80 text-sm truncate max-w-[300px]" title="{{ $actualReason }}">{{ $actualReason }}</p>
                                 </div>
                             @else
-                                <p class="text-brand-light/80 text-sm line-clamp-1">{{ $request->reason }}</p>
+                                <p class="text-brand-light/80 text-sm truncate max-w-[300px]" title="{{ $request->reason }}">{{ $request->reason }}</p>
                             @endif
                         </td>
                         <td class="px-8 py-6">
@@ -108,10 +120,10 @@
                                 @endif
                             </span>
                         </td>
-                        <td class="px-8 py-6 text-right">
-                            <div class="flex justify-end gap-2">
+                        <td class="px-8 py-6 text-center">
+                            <div class="flex justify-center gap-2">
                                 @if($request->status === 'pending')
-                                    <form method="POST" action="{{ route('student.counseling_requests.cancel', $request) }}" onsubmit="return confirm('Yakin ingin membatalkan permintaan ini?')">
+                                    <form method="POST" action="{{ route('student.counseling_requests.cancel', $request) }}" onsubmit="return confirmAction(event, 'Batal Pengajuan', 'Yakin ingin membatalkan permintaan ini?')">
                                         @csrf
                                         <button type="submit" class="px-4 py-1.5 bg-red-500/10 border border-red-500/30 text-red-500 rounded-lg font-bold hover:bg-red-500 hover:text-white transition-all text-[10px] uppercase tracking-wider">
                                             Batal
@@ -215,16 +227,19 @@
                     <div>
                         <span class="text-[10px] text-brand-light/40 uppercase font-bold tracking-widest block mb-2">Alasan & Topik</span>
                         <div class="p-4 bg-brand-light/5 border border-brand-light/5 rounded-xl">
-                            @if(str_starts_with($request->reason, '[Topik:'))
+                            @if($request->topic)
+                                <span class="bg-brand-teal text-brand-dark text-[9px] font-bold px-2 py-0.5 rounded uppercase mb-2 inline-block">{{ $request->topic->name }}</span>
+                                <p class="text-brand-light leading-relaxed whitespace-pre-wrap break-words">{{ $request->reason }}</p>
+                            @elseif(str_starts_with($request->reason, '[Topik:'))
                                 @php
                                     preg_match('/^\[Topik:\s*(.*?)\]\s*(.*)$/s', $request->reason, $matches);
                                     $topicName = $matches[1] ?? 'Custom';
                                     $actualReason = trim($matches[2] ?? '');
                                 @endphp
                                 <span class="bg-brand-teal text-brand-dark text-[9px] font-bold px-2 py-0.5 rounded uppercase mb-2 inline-block">{{ $topicName }}</span>
-                                <p class="text-brand-light leading-relaxed">{{ $actualReason }}</p>
+                                <p class="text-brand-light leading-relaxed whitespace-pre-wrap break-words">{{ $actualReason }}</p>
                             @else
-                                <p class="text-brand-light leading-relaxed">{{ $request->reason }}</p>
+                                <p class="text-brand-light leading-relaxed whitespace-pre-wrap break-words">{{ $request->reason }}</p>
                             @endif
                         </div>
                     </div>
@@ -233,7 +248,7 @@
                     @if($request->notes)
                     <div class="p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
                         <span class="text-[10px] text-red-400 uppercase font-bold tracking-widest block mb-2">Catatan Guru BK</span>
-                        <p class="text-brand-light/90 italic">"{{ $request->notes }}"</p>
+                        <p class="text-brand-light/90 italic whitespace-pre-wrap break-words">"{{ $request->notes }}"</p>
                     </div>
                     @endif
 
@@ -253,14 +268,11 @@
                     @endif
 
                     <!-- Teacher Assigned -->
-                    @if($request->teacher)
+                    @if(($request->teacher_name || $request->teacher) && $request->status !== 'rejected')
                     <div class="p-4 bg-brand-light/5 border border-brand-light/5 rounded-xl">
                         <span class="text-[10px] text-brand-light/40 uppercase font-bold tracking-widest block mb-2">Guru BK yang Menangani</span>
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-lg bg-brand-teal/10 flex items-center justify-center text-brand-teal font-bold text-sm">
-                                {{ substr($request->teacher->name, 0, 1) }}
-                            </div>
-                            <span class="text-brand-light font-bold">{{ $request->teacher->name }}</span>
+                            <span class="text-brand-light font-bold">{{ $request->teacher_name ?? $request->teacher->name }}</span>
                         </div>
                     </div>
                     @endif
@@ -269,14 +281,18 @@
                     @if($request->status === 'approved' && $request->schedule)
                     <div class="space-y-4">
                         <span class="text-[10px] text-brand-teal uppercase font-bold tracking-widest block">Informasi Jadwal</span>
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-3 gap-4">
                             <div class="p-4 bg-brand-teal/5 border border-brand-teal/10 rounded-xl">
                                 <span class="text-[9px] text-brand-teal/60 uppercase font-bold block mb-1">Tanggal</span>
                                 <span class="text-brand-light font-bold text-sm">{{ \Carbon\Carbon::parse($request->schedule->scheduled_date)->translatedFormat('d M Y') }}</span>
                             </div>
                             <div class="p-4 bg-brand-teal/5 border border-brand-teal/10 rounded-xl">
-                                <span class="text-[9px] text-brand-teal/60 uppercase font-bold block mb-1">Waktu</span>
+                                <span class="text-[9px] text-brand-teal/60 uppercase font-bold block mb-1">Waktu Mulai</span>
                                 <span class="text-brand-light font-bold text-sm">{{ \Carbon\Carbon::parse($request->schedule->start_time)->format('H:i') }} WIB</span>
+                            </div>
+                            <div class="p-4 bg-brand-teal/5 border border-brand-teal/10 rounded-xl">
+                                <span class="text-[9px] text-brand-teal/60 uppercase font-bold block mb-1">Waktu Selesai</span>
+                                <span class="text-brand-light font-bold text-sm">{{ \Carbon\Carbon::parse($request->schedule->end_time)->format('H:i') }} WIB</span>
                             </div>
                         </div>
                         <div class="p-4 bg-brand-teal/5 border border-brand-teal/10 rounded-xl">

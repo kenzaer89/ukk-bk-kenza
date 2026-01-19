@@ -16,11 +16,23 @@ class ViolationController extends Controller
     /**
      * Menampilkan daftar pelanggaran.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $violations = Violation::with(['student.schoolClass', 'rule'])
-            ->latest()
-            ->paginate(10);
+        $query = Violation::with(['student.schoolClass', 'rule']);
+
+        // Filter by search if provided
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->whereHas('student', function($sq) use ($search) {
+                    $sq->where('name', 'like', "%{$search}%");
+                })->orWhereHas('rule', function($rq) use ($search) {
+                    $rq->where('name', 'like', "%{$search}%");
+                });
+            });
+        }
+
+        $violations = $query->where('is_visible_to_admin', true)->latest()->paginate(10)->withQueryString();
 
         return view('admin.violations.index', compact('violations'));
     }
@@ -53,8 +65,8 @@ class ViolationController extends Controller
         $request->validate([
             'student_id' => 'required|exists:users,id',
             'rule_id' => 'required',
-            'violation_date' => 'required|date',
-            'description' => 'required|string',
+            'violation_date' => 'required|date|before_or_equal:today',
+            'description' => 'required|string|max:500',
             'status' => 'required|in:pending,resolved,escalated',
         ]);
 
@@ -124,12 +136,24 @@ class ViolationController extends Controller
             $violation->student->increment('points', $violation->rule->points);
         }
 
-        // Notifikasi ke Siswa
+        // Notifikasi ke Siswa & Orang Tua
+        $notifMessage = "Data pelanggaran diperbarui: " . $violation->rule->name . ". Status: " . ucfirst($violation->status);
         \App\Models\Notification::create([
             'user_id' => $violation->student_id,
-            'message' => "Data pelanggaran diperbarui: " . $violation->rule->name . ". Status: " . ucfirst($violation->status),
+            'message' => $notifMessage,
             'status' => 'unread',
         ]);
+
+        // Kirim ke Orang Tua jika ada
+        if ($violation->student) {
+            foreach ($violation->student->childrenConnections as $connection) {
+                \App\Models\Notification::create([
+                    'user_id' => $connection->parent_id,
+                    'message' => "Update Pelanggaran (" . $violation->student->name . "): " . $violation->rule->name . ". Status: " . ucfirst($violation->status),
+                    'status' => 'unread',
+                ]);
+            }
+        }
 
         return redirect()->route('admin.violations.index')
                          ->with('success', 'Data pelanggaran berhasil diperbarui dan poin telah disesuaikan dengan status.');
@@ -140,19 +164,18 @@ class ViolationController extends Controller
      */
     public function destroy(Violation $violation)
     {
-        // Kembalikan poin siswa HANYA jika statusnya 'resolved'
-        // Jika pending, berarti poin belum dikurangi, jadi tidak perlu dikembalikan
+        // Jika status selesai, jangan hapus permanen, tapi sembunyikan dari admin
+        // Poin TIDAK dikembalikan karena data masih dianggap valid untuk siswa/orang tua
         if ($violation->status === 'resolved') {
-            $student = $violation->student;
-            if ($student && $violation->rule) {
-                // Poin negatif, jadi decrement untuk mengembalikan (kurang minus = tambah)
-                $student->decrement('points', $violation->rule->points);
-            }
+            $violation->update(['is_visible_to_admin' => false]);
+            return redirect()->route('admin.violations.index')
+                             ->with('success', 'Data pelanggaran telah diselesaikan dan diarsipkan dari daftar admin.');
         }
 
+        // Jika status masih pending/escalated, hapus permanen
         $violation->delete();
         return redirect()->route('admin.violations.index')
-                         ->with('success', 'Data pelanggaran berhasil dihapus.');
+                         ->with('success', 'Data pelanggaran (belum selesai) berhasil dihapus permanen.');
     }
 
     /**
@@ -163,8 +186,8 @@ class ViolationController extends Controller
         $request->validate([
             'student_id' => 'required|exists:users,id,role,student',
             'rule_id' => 'required',
-            'violation_date' => 'required|date',
-            'description' => 'required|string',
+            'violation_date' => 'required|date|before_or_equal:today',
+            'description' => 'required|string|max:500',
             'status' => 'required|in:pending,resolved,escalated',
         ]);
 
@@ -231,12 +254,24 @@ class ViolationController extends Controller
                 $message .= ' Poin belum dikurangi karena status masih ' . $request->status . '.';
             }
 
-            // Notifikasi ke Siswa
+            // Notifikasi ke Siswa & Orang Tua
+            $notifMessage = "Pelanggaran baru dicatat: " . $violation->rule->name . " (-" . abs($violation->rule->points) . " poin). Status: " . ucfirst($request->status);
             \App\Models\Notification::create([
                 'user_id' => $request->student_id,
-                'message' => "Pelanggaran baru dicatat: " . $violation->rule->name . " (-" . abs($violation->rule->points) . " poin). Status: " . ucfirst($request->status),
+                'message' => $notifMessage,
                 'status' => 'unread',
             ]);
+
+            // Kirim ke Orang Tua jika ada
+            if ($violation->student) {
+                foreach ($violation->student->childrenConnections as $connection) {
+                    \App\Models\Notification::create([
+                        'user_id' => $connection->parent_id,
+                        'message' => "⚠️ Pelanggaran Baru (" . $violation->student->name . "): " . $violation->rule->name . ". Pengurangan " . abs($violation->rule->points) . " poin.",
+                        'status' => 'unread',
+                    ]);
+                }
+            }
 
             return redirect()->route('admin.violations.index')
                              ->with('success', $message);

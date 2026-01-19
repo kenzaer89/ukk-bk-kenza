@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="p-6">
-    <h1 class="text-3xl font-bold mb-6 text-white">✏️ Edit Pengguna: {{ $user->name }}</h1>
+    <h1 class="text-3xl font-bold mb-6 text-white">Edit Pengguna: {{ $user->name }}</h1>
 
     <div class="bg-gray-800 rounded-xl shadow-lg p-8 max-w-2xl">
         <form action="{{ route('admin.users.update', $user) }}" method="POST">

@@ -31,29 +31,14 @@
             <section class="space-y-4">
                 <h3 class="text-xl font-bold text-blue-400 mb-3 border-b border-gray-700 pb-2">Penjadwalan & Penugasan Konselor</h3>
                 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 gap-4">
                     <div>
-                        <label for="counselor_id" class="block text-sm font-medium text-gray-300 mb-2">Konselor yang Menangani</label>
-                        <select name="counselor_id" id="counselor_id" required
-                                class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:ring-blue-500 focus:border-blue-500">
-                            @foreach ($counselors as $counselor)
-                                <option value="{{ $counselor->id }}" {{ old('counselor_id', $session->counselor_id ?? auth()->id()) == $counselor->id ? 'selected' : '' }}>
-                                    {{ $counselor->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('counselor_id') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
-                    </div>
-                    
-                    <div>
-                        <label for="session_type" class="block text-sm font-medium text-gray-300 mb-2">Jenis Sesi</label>
-                        <select name="session_type" id="session_type" required
-                                class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:ring-blue-500 focus:border-blue-500">
-                            <option value="individual" {{ old('session_type', $session->session_type) == 'individual' ? 'selected' : '' }}>Individual</option>
-                            <option value="group" {{ old('session_type', $session->session_type) == 'group' ? 'selected' : '' }}>Kelompok</option>
-                            <option value="referral" {{ old('session_type', $session->session_type) == 'referral' ? 'selected' : '' }}>Rujukan (Referral)</option>
-                        </select>
-                        @error('session_type') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
+                        <label for="counselor_name" class="block text-sm font-medium text-gray-300 mb-2">Konselor yang Menangani</label>
+                        <input type="text" name="counselor_name" id="counselor_name" 
+                               value="{{ old('counselor_name', $session->counselor_name ?? ($session->counselor->name ?? auth()->user()->name)) }}" 
+                               required
+                               class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:ring-blue-500 focus:border-blue-500">
+                        @error('counselor_name') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
                     </div>
                 </div>
 
@@ -61,16 +46,19 @@
                     <div>
                         <label for="session_date" class="block text-sm font-medium text-gray-300 mb-2">Tanggal Sesi</label>
                         <input type="date" name="session_date" id="session_date" value="{{ old('session_date', $session->session_date ? $session->session_date->format('Y-m-d') : null) }}"
+                               style="color-scheme: dark;"
                                class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white">
                     </div>
                     <div>
                         <label for="start_time" class="block text-sm font-medium text-gray-300 mb-2">Waktu Mulai</label>
                         <input type="time" name="start_time" id="start_time" value="{{ old('start_time', $session->start_time ? substr($session->start_time, 0, 5) : null) }}"
+                               style="color-scheme: dark;"
                                class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white">
                     </div>
                     <div>
                         <label for="end_time" class="block text-sm font-medium text-gray-300 mb-2">Waktu Selesai</label>
                         <input type="time" name="end_time" id="end_time" value="{{ old('end_time', $session->end_time ? substr($session->end_time, 0, 5) : null) }}"
+                               style="color-scheme: dark;"
                                class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white">
                     </div>
                 </div>
@@ -129,11 +117,12 @@
                 </div>
 
                 <div id="custom-topic-field" class="mt-3 {{ (old('topic_id', optional($session->topics->first())->is_custom ? 'custom' : optional($session->topics->first())->id)) == 'custom' ? '' : 'hidden' }}">
-                    <label for="custom_topic" class="block text-sm font-medium text-gray-300 mb-2">Topik Custom</label>
+                    <label for="custom_topic" class="block text-sm font-medium text-gray-300 mb-2">Topik Custom <span class="text-red-500">*</span></label>
                     <input type="text" name="custom_topic" id="custom_topic" value="{{ old('custom_topic', optional($session->topics->first())->is_custom ? $session->topics->first()->name : '') }}"
+                           maxlength="50"
                            placeholder="Masukkan nama topik baru..."
                            class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:ring-blue-500 focus:border-blue-500">
-                    <p class="text-xs text-gray-400 mt-1">Hanya masukkan 1 topik jika menggunakan opsi custom.</p>
+                    <p class="mt-2 text-[10px] text-brand-light/40 uppercase tracking-widest font-bold italic">Maksimal 50 karakter</p>
                     @error('custom_topic') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
                 </div>
             </section>
@@ -141,7 +130,7 @@
             <div class="flex justify-end space-x-3 pt-4 border-t border-gray-700 mt-6">
                 <a href="{{ route('admin.schedules.index') }}" 
                    class="py-2 px-4 border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-700 transition">Batal</a>
-                <button type="submit" 
+                <button type="submit" id="submit-button"
                         class="py-2 px-4 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition duration-300">
                     Simpan & Perbarui Sesi
                 </button>
@@ -175,6 +164,23 @@
 
         // Run on change
         topicSelect.addEventListener('change', toggleCustomTopic);
+
+        const statusSelect = document.getElementById('status');
+        const submitButton = document.getElementById('submit-button');
+
+        function toggleSubmitButton() {
+            if (!statusSelect || !submitButton) return;
+            if (statusSelect.value === 'scheduled') {
+                submitButton.style.display = 'none';
+            } else {
+                submitButton.style.display = 'inline-flex';
+            }
+        }
+
+        if (statusSelect && submitButton) {
+            statusSelect.addEventListener('change', toggleSubmitButton);
+            toggleSubmitButton();
+        }
     });
 </script>
 @endpush

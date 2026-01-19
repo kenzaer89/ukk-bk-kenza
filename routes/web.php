@@ -57,49 +57,56 @@ Route::middleware(['auth'])->group(function () {
 
     // --- ADMIN & GURU BK ---
     // Akses ke fitur administrasi dan pengelolaan data master
+    // --- SHARED ADMIN & GURU BK ---
     Route::middleware(['role:admin,guru_bk'])->prefix('admin')->name('admin.')->group(function () {
-        
-        // DASHBOARD ADMIN & GURU BK (Controller di sini harus memiliki logika role-switching)
+        // DASHBOARD & AUTO-REFRESH
         Route::get('dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+        Route::get('check-new-requests', [AdminDashboardController::class, 'checkNewRequests'])->name('check_new_requests');
         
-        // RESOURCE ROUTES
-        Route::resource('users', App\Http\Controllers\Admin\UserController::class);
-        Route::resource('schedules', App\Http\Controllers\Admin\ScheduleController::class);
-        Route::resource('achievements', App\Http\Controllers\Admin\AchievementController::class);
-        Route::resource('classes', App\Http\Controllers\Admin\ClassController::class);
-        Route::resource('rules', App\Http\Controllers\Admin\RuleController::class);
-        Route::resource('point_levels', App\Http\Controllers\Admin\PointLevelController::class);
-        Route::resource('topics', App\Http\Controllers\Admin\TopicController::class);
-        
-        // PENCATATAN PELANGGARAN
-        Route::resource('violations', App\Http\Controllers\Admin\ViolationController::class);
-        
-        // LAPORAN BULANAN
-        Route::resource('monthly_reports', App\Http\Controllers\Admin\MonthlyReportController::class)->names('monthly_reports');
-        
-        // PENGELOLAAN SESI KONSELING
-        Route::resource('counseling_sessions', CounselingSessionController::class)->names('counseling_sessions');
-        
-        // LOG AKTIVITAS (Activity Log)
-        Route::get('activity_logs', [App\Http\Controllers\Admin\ActivityLogController::class, 'index'])->name('activity_logs.index');
-        Route::get('activity_logs/{log}', [App\Http\Controllers\Admin\ActivityLogController::class, 'show'])->name('activity_logs.show');
-        
-        // Notifikasi (per admin area - legacy routes, mapped to shared controller)
+        // Notifikasi
         Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
         Route::post('notifications/mark-read', [NotificationController::class, 'markAsRead'])->name('notifications.markRead');
         Route::post('notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.markAllRead');
         Route::delete('notifications/delete', [NotificationController::class, 'destroy'])->name('notifications.destroy');
         Route::get('notifications/count', [NotificationController::class, 'unreadCount'])->name('notifications.unreadCount');
+
+        // JADWAL & SESI KONSELING (Shared Admin & Guru BK)
+        Route::post('schedules/check-conflict', [App\Http\Controllers\Admin\ScheduleController::class, 'checkConflict'])->name('schedules.check_conflict');
+        Route::resource('schedules', App\Http\Controllers\Admin\ScheduleController::class);
+        Route::resource('counseling_sessions', CounselingSessionController::class)->names('counseling_sessions');
+    });
+
+    // --- ADMIN ONLY: PENGELOLAAN DATA MASTER & PENGGUNA ---
+    Route::middleware(['role:admin'])->prefix('admin')->name('admin.')->group(function () {
+        // KELOLA PENGGUNA
+        Route::resource('users', App\Http\Controllers\Admin\UserController::class);
+        Route::post('users/{user}/approve', [App\Http\Controllers\Admin\UserController::class, 'approve'])->name('users.approve');
+        Route::post('users/{user}/reject', [App\Http\Controllers\Admin\UserController::class, 'reject'])->name('users.reject');
         
-        // Check new counseling requests (untuk auto-refresh dashboard)
-        Route::get('check-new-requests', [AdminDashboardController::class, 'checkNewRequests'])->name('check_new_requests');
+        // DATA KELAS & KONFIGURASI
+        Route::resource('classes', App\Http\Controllers\Admin\ClassController::class);
+        Route::resource('rules', App\Http\Controllers\Admin\RuleController::class);
+        Route::resource('point_levels', App\Http\Controllers\Admin\PointLevelController::class);
+        Route::resource('topics', App\Http\Controllers\Admin\TopicController::class);
         
-        // PERMINTAAN KONSELING (Guru BK)
+        // LAPORAN & LOG
+        Route::resource('monthly_reports', App\Http\Controllers\Admin\MonthlyReportController::class)->names('monthly_reports');
+        Route::get('activity_logs', [App\Http\Controllers\Admin\ActivityLogController::class, 'index'])->name('activity_logs.index');
+        Route::get('activity_logs/{log}', [App\Http\Controllers\Admin\ActivityLogController::class, 'show'])->name('activity_logs.show');
+    });
+
+    // --- GURU BK ONLY: OPERASIONAL BIMBINGAN KONSELING ---
+    Route::middleware(['role:guru_bk'])->prefix('admin')->name('admin.')->group(function () {
+        // PERMINTAAN KONSELING
+        Route::get('counseling_requests/check-conflict', [App\Http\Controllers\Admin\CounselingRequestController::class, 'checkConflict'])->name('counseling_requests.check_conflict');
         Route::resource('counseling_requests', App\Http\Controllers\Admin\CounselingRequestController::class)->only(['index', 'show', 'destroy']);
         Route::post('counseling_requests/{counseling_request}/approve', [App\Http\Controllers\Admin\CounselingRequestController::class, 'approve'])->name('counseling_requests.approve');
         Route::post('counseling_requests/{counseling_request}/reject', [App\Http\Controllers\Admin\CounselingRequestController::class, 'reject'])->name('counseling_requests.reject');
         Route::post('counseling_requests/{counseling_request}/postpone', [App\Http\Controllers\Admin\CounselingRequestController::class, 'postpone'])->name('counseling_requests.postpone');
         
+        // PELANGGARAN & PRESTASI
+        Route::resource('violations', App\Http\Controllers\Admin\ViolationController::class);
+        Route::resource('achievements', App\Http\Controllers\Admin\AchievementController::class);
     });
 
 
@@ -122,14 +129,24 @@ Route::middleware(['auth'])->group(function () {
     Route::post('notifications/mark-all-read', [App\Http\Controllers\NotificationApiController::class, 'markAllAsRead'])->name('notifications.markallread');
     Route::delete('notifications/delete', [App\Http\Controllers\NotificationApiController::class, 'destroy'])->name('notifications.delete');
     
+    // --- PROFILE SHARED ---
+    Route::get('profile', [\App\Http\Controllers\ProfileController::class, 'show'])->name('profile.show');
+    Route::put('profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
+
     // --- PARENT ---
     Route::middleware(['role:parent'])->prefix('parent')->name('parent.')->group(function () {
         Route::get('dashboard', [ParentDashboardController::class, 'index'])->name('dashboard');
+        Route::get('select-child/{student_id}', [ParentDashboardController::class, 'selectChild'])->name('select_child');
+        Route::get('violations', [ParentDashboardController::class, 'violations'])->name('violations.index');
+        Route::get('achievements', [ParentDashboardController::class, 'achievements'])->name('achievements.index');
+        Route::get('counseling', [ParentDashboardController::class, 'counseling'])->name('counseling.index');
     });
 
     // --- WALI KELAS ---
     Route::middleware(['role:wali_kelas'])->prefix('wali')->name('wali.')->group(function () {
         Route::get('dashboard', [WaliDashboardController::class, 'index'])->name('dashboard');
+        Route::get('monitoring', [WaliDashboardController::class, 'monitoring'])->name('monitoring');
+        Route::get('monitoring/{student}', [WaliDashboardController::class, 'studentDetail'])->name('monitoring.show');
     });
 });
 

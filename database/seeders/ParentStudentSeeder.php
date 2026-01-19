@@ -15,12 +15,14 @@ class ParentStudentSeeder extends Seeder
         $parent = User::where('role','parent')->first();
         $students = User::where('role','student')->take(3)->get();
 
-        foreach($students as $student){
-            DB::table('parent_student')->insert([
-                'parent_id' => $parent->id,
-                'student_id' => $student->id,
-                'relation_type' => 'Orang Tua'
-            ]);
+        if ($parent && $students->count() > 0) {
+            foreach($students as $student){
+                DB::table('parent_student')->insert([
+                    'parent_id' => $parent->id,
+                    'student_id' => $student->id,
+                    'relation_type' => 'Orang Tua'
+                ]);
+            }
         }
     }
 }

@@ -13,11 +13,23 @@ class AchievementController extends Controller
     /**
      * Display a listing of achievements
      */
-    public function index()
+    public function index(Request $request)
     {
-        $achievements = Achievement::with(['student.schoolClass', 'teacher'])
-            ->latest('achievement_date')
-            ->paginate(15);
+        $query = Achievement::with(['student.schoolClass', 'teacher']);
+        
+        // Search functionality
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('level', 'like', "%{$search}%")
+                  ->orWhereHas('student', function($q) use ($search) {
+                      $q->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+        
+        $achievements = $query->where('is_visible_to_admin', true)->latest('achievement_date')->paginate(15)->withQueryString();
         
         return view('admin.achievements.index', compact('achievements'));
     }
@@ -43,36 +55,55 @@ class AchievementController extends Controller
             'student_id' => 'required|exists:users,id,role,student',
             'name' => 'required|string|max:255',
             'level' => 'nullable|string|max:100',
-            'point' => 'required|integer|min:1|max:150',
-            'achievement_date' => 'required|date',
-            'description' => 'required|string',
+            'point' => 'nullable|integer|min:0|max:150',
+            'achievement_date' => 'required|date|before_or_equal:today',
+            'description' => 'required|string|max:500',
         ]);
+
+        $point = $request->point ?? 0;
 
         $achievement = Achievement::create([
             'student_id' => $request->student_id,
             'teacher_id' => Auth::id(),
             'name' => $request->name,
             'level' => $request->level,
-            'point' => $request->point,
+            'point' => $point,
             'achievement_date' => $request->achievement_date,
             'description' => $request->description,
         ]);
 
         // Add points to student
         $student = User::find($request->student_id);
-        if ($student) {
-            $student->increment('points', $request->point);
+        if ($student && $point > 0) {
+            $student->increment('points', $point);
         }
 
-        // 3. Notifikasi ke Siswa
+        // 3. Notifikasi ke Siswa & Orang Tua
+        $notifPointStr = $point > 0 ? " (+" . $point . " poin)" : "";
+        $notifMessage = "Selamat! Prestasi baru dicatat: " . $achievement->name . $notifPointStr . ".";
         \App\Models\Notification::create([
             'user_id' => $request->student_id,
-            'message' => "Selamat! Prestasi baru dicatat: " . $achievement->name . " (+" . $achievement->point . " poin).",
+            'message' => $notifMessage,
             'status' => 'unread',
         ]);
 
+        if ($student) {
+            $parentPointStr = $point > 0 ? ". Penambahan " . $point . " poin." : ".";
+            foreach ($student->childrenConnections as $connection) {
+                \App\Models\Notification::create([
+                    'user_id' => $connection->parent_id,
+                    'message' => "🏆 Prestasi Baru (" . $student->name . "): " . $achievement->name . $parentPointStr,
+                    'status' => 'unread',
+                ]);
+            }
+        }
+
+        $successMessage = $point > 0 
+            ? 'Prestasi siswa berhasil dicatat dan poin telah ditambahkan (+' . $point . ').'
+            : 'Prestasi siswa berhasil dicatat tanpa penambahan poin.';
+
         return redirect()->route('admin.achievements.index')
-            ->with('success', 'Prestasi siswa berhasil dicatat dan poin telah ditambahkan (+' . $achievement->point . ').');
+            ->with('success', $successMessage);
     }
 
     public function edit(Achievement $achievement)
@@ -96,14 +127,15 @@ class AchievementController extends Controller
             'student_id' => 'required|exists:users,id,role,student',
             'name' => 'required|string|max:255',
             'level' => 'nullable|string|max:100',
-            'point' => 'required|integer|min:1|max:150',
-            'achievement_date' => 'required|date',
-            'description' => 'required|string',
+            'point' => 'nullable|integer|min:0|max:150',
+            'achievement_date' => 'required|date|before_or_equal:today',
+            'description' => 'required|string|max:500',
         ]);
+
+        $newPoints = $request->point ?? 0;
 
         // Calculate point difference
         $oldPoints = $achievement->point;
-        $newPoints = $request->point;
         $pointDifference = $newPoints - $oldPoints;
 
         // Update achievement
@@ -111,7 +143,7 @@ class AchievementController extends Controller
             'student_id' => $request->student_id,
             'name' => $request->name,
             'level' => $request->level,
-            'point' => $request->point,
+            'point' => $newPoints,
             'achievement_date' => $request->achievement_date,
             'description' => $request->description,
         ]);
@@ -128,12 +160,24 @@ class AchievementController extends Controller
             }
         }
 
-        // Notifikasi ke Siswa
+        // Notifikasi ke Siswa & Orang Tua
+        $updatePointStr = $achievement->point > 0 ? " (+" . $achievement->point . " poin)" : "";
+        $notifMessage = "Data prestasi Anda diperbarui: " . $achievement->name . $updatePointStr . ".";
         \App\Models\Notification::create([
             'user_id' => $achievement->student_id,
-            'message' => "Data prestasi Anda diperbarui: " . $achievement->name . " (+" . $achievement->point . " poin).",
+            'message' => $notifMessage,
             'status' => 'unread',
         ]);
+
+        if ($achievement->student) {
+            foreach ($achievement->student->childrenConnections as $connection) {
+                \App\Models\Notification::create([
+                    'user_id' => $connection->parent_id,
+                    'message' => "Update Prestasi (" . $achievement->student->name . "): " . $achievement->name . $updatePointStr . ".",
+                    'status' => 'unread',
+                ]);
+            }
+        }
 
         return redirect()->route('admin.achievements.index')
             ->with('success', 'Prestasi siswa berhasil diperbarui.');
@@ -144,15 +188,11 @@ class AchievementController extends Controller
      */
     public function destroy(Achievement $achievement)
     {
-        // Restore points to student
-        $student = User::find($achievement->student_id);
-        if ($student) {
-            $student->decrement('points', $achievement->point);
-        }
-
-        $achievement->delete();
+        // Jangan hapus permanen agar data tetap ada bagi Siswa, Orang Tua, & Wali Kelas
+        // Poin TIDAK dikurangi karena prestasi tetap dianggap pernah diraih
+        $achievement->update(['is_visible_to_admin' => false]);
 
         return redirect()->route('admin.achievements.index')
-            ->with('success', 'Prestasi berhasil dihapus dan poin telah dikurangi.');
+            ->with('success', 'Prestasi telah diarsipkan dari daftar admin (tetap terlihat di sisi siswa/orang tua).');
     }
 }

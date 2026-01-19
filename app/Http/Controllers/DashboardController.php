@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Models\ClassModel;
+use App\Models\SchoolClass;
 use App\Models\Violation;
 use App\Models\Achievement; // PERBAIKAN: Ganti Models\Achievement menjadi App\Models\Achievement
 use App\Models\MonthlyReport;
@@ -46,7 +46,7 @@ class DashboardController extends Controller
     private function adminDashboard()
     {
         $totalUsers = User::count();
-        $totalClasses = ClassModel::count();
+        $totalClasses = SchoolClass::count();
         $totalViolations = Violation::count();
         $totalAchievements = Achievement::count();
 
@@ -117,7 +117,7 @@ class DashboardController extends Controller
         $waliKelas = Auth::user();
         
         // 1. Temukan Kelas yang diampu
-        $myClass = ClassModel::where('wali_kelas_id', $waliKelas->id)->first();
+        $myClass = SchoolClass::where('wali_kelas_id', $waliKelas->id)->first();
 
         if (!$myClass) {
             return view('dashboard.wali_kelas', ['myClass' => null]);

@@ -19,6 +19,7 @@ class Violation extends Model
         'description',
         'follow_up_action',
         'status', // pending, resolved, escalated
+        'is_visible_to_admin',
     ];
     
     protected $casts = [

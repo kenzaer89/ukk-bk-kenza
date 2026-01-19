@@ -14,8 +14,8 @@ class CounselingSession extends Model
     protected $fillable = [
         'student_id',
         'counselor_id',
+        'counselor_name',
         'schedule_id',
-        'session_type',
         'session_date',
         'start_time',
         'end_time',

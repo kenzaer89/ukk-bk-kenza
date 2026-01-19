@@ -4,18 +4,16 @@
 
 @section('content')
 <div class="p-6">
-    <h1 class="text-3xl font-bold mb-6 text-white">📚 Data Master Topik Konseling</h1>
+    <h1 class="text-3xl font-bold mb-6 text-white">Data Master Topik Konseling</h1>
 
     <div class="flex justify-between items-center mb-6">
         <a href="{{ route('admin.topics.create') }}" 
-           class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-300">
+           class="bg-brand-teal hover:bg-brand-teal/90 text-brand-dark font-bold py-2 px-6 rounded-lg transition-all duration-300 shadow-[0_0_20px_rgba(45,212,191,0.2)]">
             + Tambah Topik Baru
         </a>
     </div>
 
-    @if (session('success'))
-        <div class="bg-green-500 p-4 rounded-lg mb-6 text-white">{{ session('success') }}</div>
-    @endif
+
 
     <div class="bg-gray-800 rounded-xl shadow-lg p-6">
         <div class="overflow-x-auto">
@@ -40,7 +38,7 @@
                                     @method('DELETE')
                                     <button type="submit" 
                                             class="text-red-400 hover:text-red-300"
-                                            onclick="return confirm('Hapus topik ini? Pastikan tidak ada sesi yang menggunakannya.')">Hapus</button>
+                                            onclick="return confirmAction(event, 'Hapus Topik', 'Hapus topik ini? Pastikan tidak ada sesi yang menggunakannya.', 'warning', 'Ya, Hapus')">Hapus</button>
                                 </form>
                             </td>
                         </tr>

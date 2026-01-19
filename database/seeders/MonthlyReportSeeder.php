@@ -14,12 +14,14 @@ class MonthlyReportSeeder extends Seeder
 
         $teacher = User::where('role','guru_bk')->first();
 
-        MonthlyReport::create([
-            'teacher_id' => $teacher->id,
-            'month' => now()->month,
-            'year' => now()->year,
-            'summary' => 'Laporan bulanan BK'
-        ]);
+        if ($teacher) {
+            MonthlyReport::create([
+                'teacher_id' => $teacher->id,
+                'month' => now()->month,
+                'year' => now()->year,
+                'summary' => 'Laporan bulanan BK'
+            ]);
+        }
     }
 }
 

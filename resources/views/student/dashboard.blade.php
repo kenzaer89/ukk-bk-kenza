@@ -4,6 +4,24 @@
 
 @section('content')
 <div class="min-h-screen p-6">
+    @if(!Auth::user()->is_approved)
+        <div class="bg-brand-gray border border-yellow-500/30 rounded-2xl p-12 text-center my-12 shadow-[0_0_50px_rgba(234,179,8,0.1)]">
+            <div class="w-24 h-24 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-6 text-yellow-500 text-5xl animate-pulse">
+                ⚠️
+            </div>
+            <h2 class="text-3xl font-bold text-white mb-4">Akun Belum Aktif</h2>
+            <p class="text-brand-light/60 max-w-lg mx-auto text-lg leading-relaxed">
+                Akun Anda sedang menunggu verifikasi oleh Admin atau Guru BK. 
+                Silakan hubungi bagian Konseling sekolah untuk mengaktifkan akun Anda agar dapat mengakses fitur Bimbingan Konseling.
+            </p>
+            <div class="mt-8">
+                <a href="{{ route('home') }}" class="inline-flex items-center gap-2 text-brand-teal hover:text-brand-teal/80 font-semibold transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    Kembali ke Beranda
+                </a>
+            </div>
+        </div>
+    @else
     <!-- Header -->
     <div class="mb-8 flex justify-between items-end">
         <div>
@@ -13,7 +31,7 @@
                 @if(Auth::user()->schoolClass) / {{ Auth::user()->schoolClass->name }} @endif
                 👋
             </h1>
-            <p class="text-brand-light/60">Selamat datang di dashboard siswa BK System</p>
+            <p class="text-brand-light/60">Selamat datang di dashboard siswa Bimbingan Konseling</p>
         </div>
         <div class="bg-brand-gray border border-brand-light/10 px-6 py-3 rounded-xl text-center">
             <p class="text-brand-light/60 text-xs uppercase tracking-wider font-semibold mb-1">Sisa Poin</p>
@@ -30,17 +48,18 @@
     <!-- Statistics Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <!-- Sesi Terjadwal -->
-        <div class="bg-brand-gray rounded-xl border border-brand-light/10 p-6 hover:border-brand-teal/50 transition-all">
+        <!-- Jadwal Konseling -->
+        <a href="{{ route('student.schedules.index', ['status' => 'scheduled']) }}" class="block bg-brand-gray rounded-xl border border-brand-light/10 p-6 hover:border-brand-teal/50 transition-all group">
             <div class="flex items-center justify-between mb-4">
-                <div class="w-12 h-12 bg-brand-teal/10 rounded-lg flex items-center justify-center">
+                <div class="w-12 h-12 bg-brand-teal/10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                     <svg class="w-6 h-6 text-brand-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                     </svg>
                 </div>
             </div>
-            <p class="text-brand-light/60 text-sm mb-1">Sesi Terjadwal</p>
+            <p class="text-brand-light/60 text-sm mb-1">Jadwal Konseling</p>
             <p class="text-3xl font-bold text-brand-teal">{{ $stats['scheduled_sessions'] }}</p>
-        </div>
+        </a>
 
         <!-- Permintaan Pending -->
         <div class="bg-brand-gray rounded-xl border border-brand-light/10 p-6 hover:border-brand-teal/50 transition-all">
@@ -142,9 +161,10 @@
                                 {{ ucfirst($session->status) }}
                             </span>
                         </div>
-                        @if($session->teacher)
-                        <p class="text-sm text-brand-light/70">Dengan: {{ $session->teacher->name }}</p>
-                        @endif
+                        @php
+                            $teacherName = $session->teacher_name ?? ($session->teacher->name ?? 'Admin');
+                        @endphp
+                        <p class="text-sm text-brand-light/70">Guru BK: {{ $teacherName }}</p>
                     </div>
                     @endforeach
                 </div>
@@ -185,9 +205,10 @@
                                 Selesai
                             </span>
                         </div>
-                        @if($session->counselor)
-                        <p class="text-sm text-brand-light/70">Dengan: {{ $session->counselor->name }}</p>
-                        @endif
+                        @php
+                            $counselorName = $session->counselor_name ?? ($session->counselor->name ?? 'Admin');
+                        @endphp
+                        <p class="text-sm text-brand-light/70">Guru BK: {{ $counselorName }}</p>
                     </div>
                     @endforeach
                 </div>
@@ -239,7 +260,7 @@
                     <svg class="w-16 h-16 text-brand-light/20 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    <p class="text-brand-light/40">Tidak ada pelanggaran 🎉</p>
+                    <p class="text-brand-light/40">Tidak ada pelanggaran</p>
                 </div>
             @endif
         </div>
@@ -284,5 +305,6 @@
             @endif
         </div>
     </div>
+    @endif
 </div>
 @endsection

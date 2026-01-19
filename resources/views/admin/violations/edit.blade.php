@@ -65,6 +65,8 @@
             <div>
                 <label for="violation_date" class="block text-sm font-medium text-gray-300 mb-2">Tanggal Pelanggaran <span class="text-red-500">*</span></label>
                 <input type="date" name="violation_date" id="violation_date" value="{{ old('violation_date', $violation->violation_date->format('Y-m-d')) }}" required
+                       style="color-scheme: dark;"
+                       max="{{ date('Y-m-d') }}"
                        oninvalid="this.setCustomValidity('Pilih tanggal pelanggaran')"
                        oninput="this.setCustomValidity('')"
                        class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-red-500 focus:border-red-500 text-sm text-white">
@@ -73,7 +75,7 @@
 
             <div>
                 <label for="description" class="block text-sm font-medium text-gray-300 mb-2">Catatan Tambahan <span class="text-red-500">*</span></label>
-                <textarea name="description" id="description" rows="4" required
+                <textarea name="description" id="description" rows="4" required maxlength="500"
                           oninvalid="this.setCustomValidity('Harap isi catatan pelanggaran')"
                           oninput="this.setCustomValidity('')"
                           class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-red-500 focus:border-red-500 text-sm text-white">{{ old('description', $violation->description) }}</textarea>
@@ -95,7 +97,7 @@
             <div class="flex justify-end space-x-3">
                 <a href="{{ route('admin.violations.index') }}" 
                    class="py-2 px-4 border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-700 transition">Batal</a>
-                <button type="submit" 
+                <button type="submit" id="btn-submit-violation"
                         class="py-2 px-4 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition duration-300">
                     Perbarui Pelanggaran
                 </button>
@@ -110,7 +112,9 @@
         const customFields = document.getElementById('custom-rule-fields');
         const customPointsInput = document.getElementById('custom_points');
         const statusSelect = document.getElementById('status');
+        const submitBtn = document.getElementById('btn-submit-violation');
         const form = ruleSelect.closest('form');
+
 
         function toggleCustom() {
             if (!ruleSelect || !customFields) return;
@@ -151,7 +155,13 @@
             }
 
             if (deductionPoints > currentPoints) {
-                alert(`Gagal: Pengurangan poin (${deductionPoints}) melebihi sisa poin siswa (${currentPoints}). Silakan pilih status Pending atau pilih aturan lain.`);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Batas Poin Terlampaui',
+                    text: `Pengurangan poin (${deductionPoints}) melebihi sisa poin siswa (${currentPoints}). Silakan pilih status Pending atau pilih aturan lain.`,
+                    confirmButtonText: 'Tutup',
+                    confirmButtonColor: '#ef4444'
+                });
                 return false;
             }
 
@@ -162,6 +172,7 @@
             ruleSelect.addEventListener('change', toggleCustom);
             toggleCustom();
         }
+
 
         form.addEventListener('submit', function(e) {
             if (!validatePointLimit()) {

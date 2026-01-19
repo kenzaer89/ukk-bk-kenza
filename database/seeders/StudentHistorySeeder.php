@@ -14,11 +14,13 @@ class StudentHistorySeeder extends Seeder
 
         $student = User::where('role','student')->first();
 
-        StudentHistory::create([
-            'student_id' => $student->id,
-            'type' => 'counseling',
-            'description' => 'Mengikuti konseling akademik',
-            'event_date' => now()
-        ]);
+        if ($student) {
+            StudentHistory::create([
+                'student_id' => $student->id,
+                'type' => 'counseling',
+                'description' => 'Mengikuti konseling akademik',
+                'event_date' => now()
+            ]);
+        }
     }
 }

@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Masuk - BK System</title>
+    <title>Masuk - Bimbingan Konseling</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -22,7 +22,7 @@
                     <div class="w-12 h-12 bg-brand-teal rounded-lg flex items-center justify-center text-brand-dark font-bold text-xl shadow-[0_0_15px_rgba(118,171,174,0.5)]">
                         BK
                     </div>
-                    <span class="text-2xl font-bold tracking-tight text-brand-light">BK System</span>
+                    <span class="text-2xl font-bold tracking-tight text-brand-light">Bimbingan Konseling</span>
                 </a>
                 <h1 class="text-3xl font-bold text-brand-light mb-2">Selamat Datang Kembali</h1>
                 <p class="text-brand-light/60">Masuk ke akun Anda untuk melanjutkan</p>
@@ -60,17 +60,52 @@
                     <!-- Password -->
                     <div>
                         <label for="password" class="block text-brand-light font-medium mb-2">Password</label>
-                        <input 
-                            type="password" 
-                            id="password" 
-                            name="password" 
-                            required
-                            class="w-full px-4 py-3 bg-brand-dark border border-brand-light/10 rounded-lg text-brand-light placeholder-brand-light/40 focus:outline-none focus:border-brand-teal/50 focus:ring-2 focus:ring-brand-teal/20 transition-all"
-                            placeholder="••••••••"
-                        >
+                        <div class="relative">
+                            <input 
+                                type="password" 
+                                id="password" 
+                                name="password" 
+                                required
+                                class="w-full px-4 py-3 bg-brand-dark border border-brand-light/10 rounded-lg text-brand-light placeholder-brand-light/40 focus:outline-none focus:border-brand-teal/50 focus:ring-2 focus:ring-brand-teal/20 transition-all pr-12"
+                                placeholder="••••••••"
+                            >
+                            <button 
+                                type="button" 
+                                onclick="togglePasswordVisibility()"
+                                class="absolute inset-y-0 right-0 flex items-center px-4 text-brand-light/60 hover:text-brand-teal focus:outline-none transition-colors"
+                            >
+                                <!-- Icon Eye (Show Password) - Displays when visible -->
+                                <svg id="eye-icon-show" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                                <!-- Icon Eye Slash (Hide Password) - Displays when hidden -->
+                                <svg id="eye-icon-hide" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                                </svg>
+                            </button>
+                        </div>
                         @error('password')
                             <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                         @enderror
+
+                        <script>
+                            function togglePasswordVisibility() {
+                                const passwordInput = document.getElementById('password');
+                                const eyeShow = document.getElementById('eye-icon-show');
+                                const eyeHide = document.getElementById('eye-icon-hide');
+                        
+                                if (passwordInput.type === 'password') {
+                                    passwordInput.type = 'text';
+                                    eyeShow.classList.remove('hidden');
+                                    eyeHide.classList.add('hidden');
+                                } else {
+                                    passwordInput.type = 'password';
+                                    eyeShow.classList.add('hidden');
+                                    eyeHide.classList.remove('hidden');
+                                }
+                            }
+                        </script>
                     </div>
 
                     <!-- Remember Me & Forgot Password -->

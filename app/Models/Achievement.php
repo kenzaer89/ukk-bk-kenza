@@ -17,7 +17,8 @@ class Achievement extends Model
         'achievement_date',
         'description',
         'notes',
-        'point'
+        'point',
+        'is_visible_to_admin',
     ];
 
     protected $casts = [

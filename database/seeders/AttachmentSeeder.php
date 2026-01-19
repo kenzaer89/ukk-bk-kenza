@@ -14,13 +14,15 @@ class AttachmentSeeder extends Seeder
 
         $session = CounselingSession::first();
 
-        Attachment::create([
-            'session_id' => $session->id,
-            'filename' => 'dokumen.pdf',
-            'path' => '/uploads/dokumen.pdf',
-            'mime_type' => 'application/pdf',
-            'size_bytes' => 102400
-        ]);
+        if ($session) {
+            Attachment::create([
+                'session_id' => $session->id,
+                'filename' => 'dokumen.pdf',
+                'path' => '/uploads/dokumen.pdf',
+                'mime_type' => 'application/pdf',
+                'size_bytes' => 102400
+            ]);
+        }
     }
 }
 

@@ -11,16 +11,30 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
+    protected static function booted()
+    {
+        static::creating(function ($user) {
+            if ($user->role === 'student') {
+                $user->points = $user->points ?? 100;
+            } else {
+                $user->points = null;
+            }
+        });
+    }
+
     protected $fillable = [
         'name',
         'email',
         'password',
         'role',       // admin, guru_bk, student, parent, wali_kelas
         'phone',
+        'nisn',       // nomor induk siswa nasional
+        'nip',        // nomor induk pegawai
         'class_id',   // optional
         'absen',      // nomor absen
         'specialization', // jurusan
         'points',     // poin pelanggaran (default 100)
+        'is_approved', // status persetujuan
         'extra',      // any extra json/text column
     ];
 
@@ -48,17 +62,10 @@ class User extends Authenticatable
         return $this->hasMany(CounselingSchedule::class, 'teacher_id');
     }
 
-    // sessions through schedules (convenience)
+    // sessions for this student
     public function sessions()
     {
-        return $this->hasManyThrough(
-            CounselingSession::class,
-            CounselingSchedule::class,
-            'student_id', // Foreign key on schedules table...
-            'schedule_id', // Foreign key on sessions table...
-            'id', // Local key on users table...
-            'id'  // Local key on schedules table...
-        );
+        return $this->hasMany(CounselingSession::class, 'student_id');
     }
 
     public function notifications()
@@ -69,6 +76,11 @@ class User extends Authenticatable
     public function violations()
     {
         return $this->hasMany(Violation::class, 'student_id');
+    }
+
+    public function achievements()
+    {
+        return $this->hasMany(Achievement::class, 'student_id');
     }
 
     public function scopeStudents($query)
@@ -108,5 +120,39 @@ class User extends Authenticatable
             'parent_id',
             'student_id'
         );
+    }
+
+    public function managedClass()
+    {
+        return $this->hasOne(SchoolClass::class, 'wali_kelas_id');
+    }
+
+    public function getSpecializationFullNameAttribute()
+    {
+        if ($this->schoolClass) {
+            return $this->schoolClass->jurusan_full_name;
+        }
+
+        $map = [
+            'RPL' => 'Rekayasa Perangkat Lunak',
+            'TITL' => 'Teknik Instalasi Tenaga Listrik',
+            'TKR' => 'Teknik Kendaraan Ringan',
+            'TPM' => 'Teknik Permesinan'
+        ];
+        $abbr = strtoupper($this->specialization ?? '');
+        return $map[$abbr] ?? ($this->specialization ?? '-');
+    }
+
+    public function getRoleDisplayNameAttribute()
+    {
+        $map = [
+            'admin' => 'Admin BK',
+            'guru_bk' => 'Guru BK',
+            'wali_kelas' => 'Wali Kelas',
+            'student' => 'Murid',
+            'parent' => 'Orang Tua'
+        ];
+
+        return $map[$this->role] ?? ucfirst(str_replace('_', ' ', $this->role));
     }
 }

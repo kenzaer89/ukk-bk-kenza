@@ -14,12 +14,14 @@ class AchievementSeeder extends Seeder
 
         $student = User::where('role','student')->first();
 
-        Achievement::create([
-            'student_id' => $student->id,
-            'name' => 'Juara 1 Lomba Matematika',
-            'level' => 'school',
-            'point' => 10,
-            'achievement_date' => now()
-        ]);
+        if ($student) {
+            Achievement::create([
+                'student_id' => $student->id,
+                'name' => 'Juara 1 Lomba Matematika',
+                'level' => 'school',
+                'point' => 10,
+                'achievement_date' => now()
+            ]);
+        }
     }
 }

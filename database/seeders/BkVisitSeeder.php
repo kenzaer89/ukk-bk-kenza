@@ -15,11 +15,13 @@ class BkVisitSeeder extends Seeder
         $student = User::where('role','student')->first();
         $teacher = User::where('role','guru_bk')->first();
 
-        BkVisit::create([
-            'visit_date' => now(),
-            'reason' => 'Konseling rutin',
-            'student_id' => $student->id,
-            'teacher_id' => $teacher->id
-        ]);
+        if ($student && $teacher) {
+            BkVisit::create([
+                'visit_date' => now(),
+                'reason' => 'Konseling rutin',
+                'student_id' => $student->id,
+                'teacher_id' => $teacher->id
+            ]);
+        }
     }
 }

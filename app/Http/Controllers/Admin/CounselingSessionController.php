@@ -45,9 +45,8 @@ class CounselingSessionController extends Controller
     {
         $request->validate([
             'student_id' => 'required|exists:users,id',
-            'counselor_id' => 'required|exists:users,id',
+            'counselor_name' => 'required|string|max:255',
             'schedule_id' => 'nullable|exists:counseling_schedules,id',
-            'session_type' => ['required', Rule::in(['individual', 'group', 'referral'])],
             'session_date' => 'required|date',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
@@ -57,6 +56,8 @@ class CounselingSessionController extends Controller
             'follow_up_required' => 'nullable|boolean',
             'topic_id' => 'nullable|exists:topics,id',
             'custom_topic' => 'nullable|string|max:255',
+        ], [
+            'end_time.after' => 'waktu selesai tidak boleh sama atau kurang dari waktu pukul',
         ]);
 
         // Hanya boleh pilih 1: dari daftar ATAU custom
@@ -81,7 +82,10 @@ class CounselingSessionController extends Controller
             return redirect()->back()->withInput()->withErrors(['topic_id' => 'Pilih salah satu: topik dari daftar ATAU topik custom, tidak boleh keduanya atau kosong.']);
         }
 
-        $session = CounselingSession::create($request->except('topic_id', 'custom_topic', 'status'));
+        $session = CounselingSession::create(array_merge(
+            $request->except('topic_id', 'custom_topic', 'status', 'counselor_id'),
+            ['counselor_id' => auth()->id()]
+        ));
         // Pastikan status di-set explicit (karena create di atas mungkin skip status jika tidak di-$fillable atau semacamnya, meski harusnya aman)
         // Kita update lagi untuk memastikan jika ada logic lain atau sekadar rapi:
         $session->update(['status' => $request->status]);
@@ -96,6 +100,15 @@ class CounselingSessionController extends Controller
         $statusTab = ($request->status === 'cancelled') ? 'cancelled' : 'completed';
         return redirect()->route('admin.schedules.index', ['status' => $statusTab])
                          ->with('success', 'Sesi konseling berhasil dicatat.');
+    }
+
+    /**
+     * Menampilkan detail sesi konseling.
+     */
+    public function show(CounselingSession $counselingSession)
+    {
+        $session = $counselingSession->load(['student.schoolClass', 'counselor', 'topics', 'schedule']);
+        return view('admin.counseling_sessions.show', compact('session'));
     }
 
     /**
@@ -120,8 +133,7 @@ class CounselingSessionController extends Controller
         $session = $counselingSession; // Alias
         
         $request->validate([
-            'counselor_id' => 'required|exists:users,id',
-            'session_type' => ['required', Rule::in(['individual', 'group', 'referral'])],
+            'counselor_name' => 'required|string|max:255',
             'session_date' => 'nullable|date',
             'start_time' => 'nullable|date_format:H:i',
             'end_time' => 'nullable|date_format:H:i|after:start_time',
@@ -131,12 +143,13 @@ class CounselingSessionController extends Controller
             'follow_up_required' => 'nullable|boolean',
             'topic_id' => 'nullable|exists:topics,id',
             'custom_topic' => 'nullable|string|max:255',
+        ], [
+            'end_time.after' => 'waktu selesai tidak boleh sama atau kurang dari waktu pukul',
         ]);
         
         // 1. Update data sesi
         $session->update($request->only([
-            'counselor_id',
-            'session_type',
+            'counselor_name',
             'session_date',
             'start_time',
             'end_time',

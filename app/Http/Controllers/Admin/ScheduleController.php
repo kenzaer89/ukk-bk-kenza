@@ -17,24 +17,40 @@ class ScheduleController extends Controller
      */
     public function index(Request $request)
     {
-        $query = CounselingSchedule::with(['student', 'teacher', 'counselingRequest', 'topic', 'session']);
+        $query = CounselingSchedule::with(['student', 'teacher', 'counselingRequest', 'topic', 'session'])
+            ->where('is_visible_to_admin', true)
+            ->whereNull('counseling_request_id');
 
         // Filter by status if provided
         if ($request->has('status')) {
             $query->where('status', $request->status);
         }
 
+        // Filter by search if provided
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->whereHas('student', function($sq) use ($search) {
+                    $sq->where('name', 'like', "%{$search}%");
+                })->orWhere('teacher_name', 'like', "%{$search}%")
+                ->orWhereHas('teacher', function($tq) use ($search) {
+                    $tq->where('name', 'like', "%{$search}%");
+                })->orWhere('location', 'like', "%{$search}%");
+            });
+        }
+
         $schedules = $query->latest('scheduled_date')
                         ->latest('start_time')
                         ->latest()
-                        ->paginate(10);
+                        ->paginate(10)
+                        ->withQueryString();
         
         // Count for stats
         $counts = [
-            'all' => CounselingSchedule::count(),
-            'scheduled' => CounselingSchedule::where('status', 'scheduled')->count(),
-            'completed' => CounselingSchedule::where('status', 'completed')->count(),
-            'cancelled' => CounselingSchedule::where('status', 'cancelled')->count(),
+            'all' => CounselingSchedule::where('is_visible_to_admin', true)->whereNull('counseling_request_id')->count(),
+            'scheduled' => CounselingSchedule::where('is_visible_to_admin', true)->whereNull('counseling_request_id')->where('status', 'scheduled')->count(),
+            'completed' => CounselingSchedule::where('is_visible_to_admin', true)->whereNull('counseling_request_id')->where('status', 'completed')->count(),
+            'cancelled' => CounselingSchedule::where('is_visible_to_admin', true)->whereNull('counseling_request_id')->where('status', 'cancelled')->count(),
         ];
         
         return view('admin.schedules.index', compact('schedules', 'counts'));
@@ -69,7 +85,7 @@ class ScheduleController extends Controller
     {
         $request->validate([
             'student_id' => 'required|exists:users,id',
-            'teacher_id' => 'required|exists:users,id',
+            'teacher_name' => 'required|string|max:255',
             'topic_id' => 'required|string', // Bisa 'custom' atau ID numerik
             'custom_topic' => 'nullable|string|max:255',
             'scheduled_date' => 'required|date|after_or_equal:today',
@@ -78,9 +94,9 @@ class ScheduleController extends Controller
             'location' => 'required|string|max:255',
             'counseling_request_id' => 'nullable|exists:counseling_requests,id',
         ], [
-            'end_time.after' => 'Waktu selesai harus lebih besar dari waktu mulai.',
+            'end_time.after' => 'waktu selesai tidak boleh sama atau kurang dari waktu pukul',
             'student_id.required' => 'Wajib memilih siswa.',
-            'teacher_id.required' => 'Wajib memilih guru BK.',
+            'teacher_name.required' => 'Wajib mengisi nama guru penanggung jawab.',
             'topic_id.required' => 'Wajib memilih topik konseling.',
             'scheduled_date.required' => 'Wajib mengisi tanggal sesi.',
             'start_time.required' => 'Wajib mengisi waktu mulai.',
@@ -104,11 +120,46 @@ class ScheduleController extends Controller
         } else {
             $topicId = $request->topic_id;
         }
+
+        // Check for conflicts - ONLY check against other manual schedules (whereNull counseling_request_id)
+        $conflict = CounselingSchedule::where('scheduled_date', $request->scheduled_date)
+            ->whereNull('counseling_request_id')
+            ->whereIn('status', ['scheduled', 'completed'])
+            ->where(function($query) use ($request) {
+                $query->where('start_time', '<', $request->end_time)
+                      ->where('end_time', '>', $request->start_time);
+            })
+            ->where(function($query) use ($request) {
+                // Group identity checks
+                $query->where(function($q) use ($request) {
+                    $q->where('student_id', $request->student_id)
+                      ->orWhere('teacher_id', Auth::id())
+                      ->orWhere('teacher_name', $request->teacher_name)
+                      ->orWhere(function($sq) use ($request) {
+                          $sq->whereRaw('LOWER(location) = ?', [strtolower($request->location)])
+                            ->whereNotNull('location');
+                      });
+                });
+            })
+            ->first();
+
+        if ($conflict) {
+            $conflictType = '';
+            if ($conflict->student_id == $request->student_id) $conflictType = "Siswa " . $conflict->student->name;
+            elseif ($conflict->teacher_id == Auth::id() || $conflict->teacher_name == $request->teacher_name) $conflictType = "Guru BK (" . $request->teacher_name . ")";
+            else $conflictType = "Lokasi " . $conflict->location;
+
+            $conflictTime = substr($conflict->start_time, 0, 5) . ' - ' . substr($conflict->end_time, 0, 5);
+            return redirect()->back()
+                ->withInput()
+                ->with('error', "Jadwal Bertabrakan! {$conflictType} sudah memiliki agenda pada pukul {$conflictTime} WIB. Silakan pilih waktu atau lokasi lain.");
+        }
         
         // 1. Simpan Jadwal Konseling
         $schedule = CounselingSchedule::create([
             'student_id' => $request->student_id,
-            'teacher_id' => $request->teacher_id,
+            'teacher_id' => Auth::id(), // For system tracking
+            'teacher_name' => $request->teacher_name,
             'topic_id' => $topicId,
             'scheduled_date' => $request->scheduled_date,
             'start_time' => $request->start_time,
@@ -122,7 +173,11 @@ class ScheduleController extends Controller
         if ($request->counseling_request_id) {
             $req = CounselingRequest::find($request->counseling_request_id);
             if ($req && $req->status === 'pending') {
-                $req->update(['status' => 'approved', 'teacher_id' => $request->teacher_id]);
+                $req->update([
+                    'status' => 'approved', 
+                    'teacher_id' => Auth::id(), 
+                    'teacher_name' => $request->teacher_name
+                ]);
             }
         }
 
@@ -156,7 +211,7 @@ class ScheduleController extends Controller
     {
         $request->validate([
             'student_id' => 'required|exists:users,id',
-            'teacher_id' => 'required|exists:users,id',
+            'teacher_name' => 'required|string|max:255',
             'topic_id' => 'required|string',
             'custom_topic' => 'nullable|string|max:255',
             'scheduled_date' => 'required|date|after_or_equal:today',
@@ -164,9 +219,9 @@ class ScheduleController extends Controller
             'end_time' => 'required|date_format:H:i|after:start_time',
             'location' => 'required|string|max:255',
         ], [
-            'end_time.after' => 'Waktu selesai harus lebih besar dari waktu mulai.',
+            'end_time.after' => 'waktu selesai tidak boleh sama atau kurang dari waktu pukul',
             'student_id.required' => 'Wajib memilih siswa.',
-            'teacher_id.required' => 'Wajib memilih guru BK.',
+            'teacher_name.required' => 'Wajib mengisi nama guru penanggung jawab.',
             'topic_id.required' => 'Wajib memilih topik konseling.',
             'scheduled_date.required' => 'Wajib mengisi tanggal sesi.',
             'start_time.required' => 'Wajib mengisi waktu mulai.',
@@ -191,9 +246,43 @@ class ScheduleController extends Controller
             $topicId = $request->topic_id;
         }
 
+        // Check for conflicts - ONLY check against other manual schedules
+        $conflict = CounselingSchedule::where('scheduled_date', $request->scheduled_date)
+            ->whereNull('counseling_request_id')
+            ->whereIn('status', ['scheduled', 'completed'])
+            ->where('id', '!=', $schedule->id)
+            ->where(function($query) use ($request) {
+                $query->where('start_time', '<', $request->end_time)
+                      ->where('end_time', '>', $request->start_time);
+            })
+            ->where(function($query) use ($request) {
+                $query->where(function($q) use ($request) {
+                    $q->where('student_id', $request->student_id)
+                      ->orWhere('teacher_id', Auth::id())
+                      ->orWhere('teacher_name', $request->teacher_name)
+                      ->orWhere(function($sq) use ($request) {
+                          $sq->whereRaw('LOWER(location) = ?', [strtolower($request->location)])
+                            ->whereNotNull('location');
+                      });
+                });
+            })
+            ->first();
+
+        if ($conflict) {
+            $conflictType = '';
+            if ($conflict->student_id == $request->student_id) $conflictType = "Siswa " . $conflict->student->name;
+            elseif ($conflict->teacher_id == Auth::id() || $conflict->teacher_name == $request->teacher_name) $conflictType = "Guru BK (" . $request->teacher_name . ")";
+            else $conflictType = "Lokasi " . $conflict->location;
+
+            $conflictTime = substr($conflict->start_time, 0, 5) . ' - ' . substr($conflict->end_time, 0, 5);
+            return redirect()->back()
+                ->withInput()
+                ->with('error', "Jadwal Bertabrakan! {$conflictType} sudah memiliki agenda pada pukul {$conflictTime} WIB. Silakan pilih waktu atau lokasi lain.");
+        }
+
         $schedule->update([
             'student_id' => $request->student_id,
-            'teacher_id' => $request->teacher_id,
+            'teacher_name' => $request->teacher_name,
             'topic_id' => $topicId,
             'scheduled_date' => $request->scheduled_date,
             'start_time' => $request->start_time,
@@ -210,32 +299,89 @@ class ScheduleController extends Controller
      */
     public function destroy(CounselingSchedule $schedule)
     {
-        // Jika status SELESAI, kita izinkan Hapus Permanen (termasuk sesinya)
-    if ($schedule->status === 'completed') {
-        if ($schedule->session) {
-            $schedule->session->delete();
+        // Jika sudah diarsipkan (is_visible_to_admin == false), maka hapus permanen
+        if (!$schedule->is_visible_to_admin) {
+            if ($schedule->session) {
+                $schedule->session->delete();
+            }
+            $schedule->delete();
+            return redirect()->route('admin.schedules.index')->with('success', 'Data berhasil dihapus permanen dari sistem.');
         }
-        $schedule->delete();
-        return redirect()->route('admin.schedules.index')->with('success', 'Data sesi konseling berhasil dihapus permanen.');
-    }
 
-    // Jika status sudah DIBATALKAN, kita izinkan Hapus Permanen catatan tersebut
-    if ($schedule->status === 'cancelled') {
-        $schedule->delete();
-        return redirect()->route('admin.schedules.index')->with('success', 'Catatan jadwal yang dibatalkan telah dihapus dari sistem.');
-    }
+        // Jika status SELESAI atau DIBATALKAN, sembunyikan saja
+        if ($schedule->status === 'completed' || $schedule->status === 'cancelled') {
+            $schedule->update(['is_visible_to_admin' => false]);
+            return redirect()->route('admin.schedules.index')->with('success', 'Data ditutup dan diarsipkan dari daftar admin.');
+        }
 
-    // Pencegahan pembatalan jika sudah ada draf sesi
-    if ($schedule->session) {
-        return redirect()->back()->with('error', 'Jadwal tidak dapat dibatalkan karena sudah memiliki Sesi Konseling. Silakan hapus sesi terlebih dahulu.');
+        // Jika masih TERJADWAL, tawarkan untuk membatalkan statusnya dulu atau langsung sembunyikan
+        // Di sini kita sembunyikan saja dan otomatis ubah status jadi cancelled jika belum
+        if ($schedule->status === 'scheduled') {
+            $schedule->update([
+                'status' => 'cancelled',
+                'is_visible_to_admin' => false
+            ]);
+            return redirect()->route('admin.schedules.index')->with('success', 'Jadwal dibatalkan dan diarsipkan dari daftar admin.');
+        }
+
+        return redirect()->back()->with('error', 'Gagal memproses penghapusan data.');
     }
-    
-    // Ubah status jadwal menjadi DIBATALKAN (bukan menghapus langsung agar siswa tahu)
-    $schedule->update(['status' => 'cancelled']);
-    
-    // Sinkronisasi ke CounselingRequest ditangani oleh Boot model CounselingSchedule yang telah kita buat
-    
-    return redirect()->route('admin.schedules.index')
-                     ->with('success', 'Jadwal konseling berhasil dibatalkan. Status pada portal siswa juga berubah menjadi Dibatalkan.');
-}
+    /**
+     * Mengecek bentrok jadwal konseling.
+     */
+    public function checkConflict(Request $request)
+    {
+        $date = $request->scheduled_date ?? $request->session_date;
+        $startTime = $request->start_time;
+        $endTime = $request->end_time;
+        $excludeId = $request->id; // Untuk mode edit
+
+        $conflict = CounselingSchedule::where('scheduled_date', $date)
+            ->whereNull('counseling_request_id')
+            ->whereIn('status', ['scheduled', 'completed'])
+            ->where(function($query) use ($startTime, $endTime) {
+                $query->where('start_time', '<', $endTime)
+                      ->where('end_time', '>', $startTime);
+            })
+            ->where(function($query) use ($request) {
+                $query->where(function($q) use ($request) {
+                    if ($request->filled('student_id')) {
+                        $q->where('student_id', $request->student_id);
+                    }
+                    
+                    $q->orWhere('teacher_id', Auth::id());
+                    
+                    if ($request->filled('teacher_name')) {
+                        $q->orWhere('teacher_name', $request->teacher_name);
+                    }
+
+                    if ($request->filled('location')) {
+                        $q->orWhere(function($sq) use ($request) {
+                            $sq->whereRaw('LOWER(location) = ?', [strtolower($request->location)])
+                              ->whereNotNull('location');
+                        });
+                    }
+                });
+            })
+            ->when($excludeId, function($query) use ($excludeId) {
+                $query->where('id', '!=', $excludeId);
+            })
+            ->first();
+
+        if ($conflict) {
+            $conflictType = '';
+            if ($request->filled('student_id') && $conflict->student_id == $request->student_id) $conflictType = "Siswa " . ($conflict->student->name ?? 'Siswa');
+            elseif ($conflict->teacher_id == Auth::id() || ($request->filled('teacher_name') && $conflict->teacher_name == $request->teacher_name)) $conflictType = "Bapak/Ibu (" . ($request->teacher_name ?? 'Guru BK') . ")";
+            else $conflictType = "Lokasi " . $conflict->location;
+
+            $conflictTime = substr($conflict->start_time, 0, 5) . ' - ' . substr($conflict->end_time, 0, 5);
+            
+            return response()->json([
+                'conflict' => true,
+                'message' => "JADWAL BERTABRAKAN! Jam tersebut sudah terisi oleh agenda {$conflictType} pada pukul {$conflictTime} WIB. Silakan pilih slot waktu lain."
+            ]);
+        }
+
+        return response()->json(['conflict' => false]);
+    }
 }

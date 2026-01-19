@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\ClassModel; // Gunakan ClassModel
+use App\Models\SchoolClass; // Gunakan SchoolClass untuk konsistensi
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -11,11 +11,30 @@ class ClassController extends Controller
 {
     // Menampilkan daftar semua kelas. (READ - Index)
      
-    public function index()
+    public function index(Request $request)
     {
-        $classes = ClassModel::with('waliKelas')->latest()->paginate(10);
+        $query = SchoolClass::with('waliKelas')->withCount('students')->orderBy('name', 'asc');
+
+        if ($request->has('search') && $request->search != '') {
+            $searchTerm = $request->search;
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('name', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('jurusan', 'like', '%' . $searchTerm . '%');
+            });
+        }
+
+        $classes = $query->paginate(20)->withQueryString();
         
         return view('admin.classes.index', compact('classes'));
+    }
+
+    /**
+     * Menampilkan daftar siswa dalam kelas tertentu.
+     */
+    public function show(SchoolClass $class)
+    {
+        $class->load(['students', 'waliKelas']);
+        return view('admin.classes.show', compact('class'));
     }
 
     /**
@@ -38,7 +57,7 @@ class ClassController extends Controller
             'wali_kelas_id' => 'nullable|exists:users,id,role,wali_kelas', // Validasi hanya boleh user role wali_kelas
         ]);
 
-        ClassModel::create($request->all());
+        SchoolClass::create($request->all());
 
         return redirect()->route('admin.classes.index')
                          ->with('success', 'Data kelas berhasil ditambahkan.');
@@ -47,7 +66,7 @@ class ClassController extends Controller
     /**
      * Menampilkan form untuk mengedit kelas. (UPDATE - Form)
      */
-    public function edit(ClassModel $class)
+    public function edit(SchoolClass $class)
     {
         $waliKelas = User::waliKelas()->orderBy('name')->get();
         return view('admin.classes.edit', compact('class', 'waliKelas'));
@@ -56,7 +75,7 @@ class ClassController extends Controller
     /**
      * Memperbarui data kelas di database. (UPDATE - Store)
      */
-    public function update(Request $request, ClassModel $class)
+    public function update(Request $request, SchoolClass $class)
     {
         $request->validate([
             'name' => 'required|string|max:100|unique:classes,name,' . $class->id,
@@ -73,7 +92,7 @@ class ClassController extends Controller
     /**
      * Menghapus kelas dari database. (DELETE)
      */
-    public function destroy(ClassModel $class)
+    public function destroy(SchoolClass $class)
     {
         // Pencegahan: Jangan hapus jika ada siswa yang terhubung
         if ($class->students()->count() > 0) {

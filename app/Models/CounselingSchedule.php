@@ -8,7 +8,8 @@ class CounselingSchedule extends Model
 {
     protected $fillable = [
         'counseling_request_id', 'topic_id', 'scheduled_date', 'start_time', 'end_time', 
-        'location', 'status', 'student_notes', 'admin_notes', 'student_id', 'teacher_id'
+        'location', 'status', 'student_notes', 'admin_notes', 'student_id', 'teacher_id', 'teacher_name',
+        'is_visible_to_admin'
     ];
 
     protected $casts = [

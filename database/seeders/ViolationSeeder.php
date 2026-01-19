@@ -16,13 +16,17 @@ class ViolationSeeder extends Seeder
         $student = User::where('role','student')->first();
         $rule = Rule::first();
 
-        Violation::create([
-            'student_id' => $student->id,
-            'rule_id' => $rule->id,
-            'teacher_id' => User::where('role', 'teacher')->first()->id ?? null,
-            'violation_date' => now(),
-            'description' => 'Siswa terlambat masuk kelas',
-            'status' => 'pending'
-        ]);
+        if ($student && $rule) {
+            $teacher = User::where('role', 'teacher')->first();
+            
+            Violation::create([
+                'student_id' => $student->id,
+                'rule_id' => $rule->id,
+                'teacher_id' => $teacher ? $teacher->id : null,
+                'violation_date' => now(),
+                'description' => 'Siswa terlambat masuk kelas',
+                'status' => 'pending'
+            ]);
+        }
     }
 }

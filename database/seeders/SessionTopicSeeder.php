@@ -15,8 +15,10 @@ class SessionTopicSeeder extends Seeder
         $session = CounselingSession::first();
         $topics = Topic::all();
 
-        foreach($topics as $topic){
-            $session->topics()->attach($topic->id);
+        if ($session) {
+            foreach($topics as $topic){
+                $session->topics()->attach($topic->id);
+            }
         }
     }
 }

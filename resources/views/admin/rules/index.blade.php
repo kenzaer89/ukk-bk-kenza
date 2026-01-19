@@ -13,12 +13,8 @@
         </a>
     </div>
 
-    @if (session('success'))
-        <div class="bg-green-500 p-4 rounded-lg mb-6 text-white">{{ session('success') }}</div>
-    @endif
-    @if (session('error'))
-        <div class="bg-red-500 p-4 rounded-lg mb-6 text-white">{{ session('error') }}</div>
-    @endif
+
+
 
     <div class="bg-gray-800 rounded-xl shadow-lg p-6">
         <div class="overflow-x-auto">

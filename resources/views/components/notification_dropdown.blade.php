@@ -57,7 +57,7 @@
             },
             
             fetchNotifications() {
-                fetch('/notifications/list')
+                fetch('/notifications/list', { headers: { 'Accept': 'application/json' } })
                     .then(r => r.json())
                     .then(data => { 
                         this.notifications = data.notifications || []; 
@@ -66,12 +66,12 @@
             },
             
             updateCount() {
-                fetch('/notifications/count')
+                fetch('/notifications/count', { headers: { 'Accept': 'application/json' } })
                     .then(r => r.json())
                     .then(data => { 
                         const newCount = data.count || 0;
                         if (this.initialized && newCount > this.count) {
-                            window.showGlobalToast('Notifikasi Baru', 'Anda memiliki pesan baru di menu BK System.');
+                            window.showGlobalToast('Notifikasi Baru', 'Anda memiliki pesan baru di menu Bimbingan Konseling.');
                             // Optional: play sound
                             if (window.playNotificationSound) window.playNotificationSound();
                         }

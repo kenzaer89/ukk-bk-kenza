@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Verifikasi Email - BK System</title>
+    <title>Verifikasi Email - Bimbingan Konseling</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -22,7 +22,7 @@
                     <div class="w-12 h-12 bg-brand-teal rounded-lg flex items-center justify-center text-brand-dark font-bold text-xl shadow-[0_0_15px_rgba(118,171,174,0.5)]">
                         BK
                     </div>
-                    <span class="text-2xl font-bold tracking-tight text-brand-light">BK System</span>
+                    <span class="text-2xl font-bold tracking-tight text-brand-light">Bimbingan Konseling</span>
                 </a>
             </div>
 

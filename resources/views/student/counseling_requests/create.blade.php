@@ -13,7 +13,11 @@
             Kembali
         </a>
         <h1 class="text-3xl font-bold text-brand-light mb-2 flex items-center gap-3">
-            <span>📝</span> Ajukan Permintaan Konseling
+            <span class="p-2 bg-indigo-500/20 rounded-lg">
+                <svg class="w-8 h-8 text-brand-teal" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
+            </span> Ajukan Permintaan Konseling
         </h1>
         <p class="text-brand-light/60">Sampaikan kebutuhan konseling Anda kepada Guru BK</p>
     </div>
@@ -65,9 +69,11 @@
                         id="custom_topic_name" 
                         name="custom_topic_name" 
                         value="{{ old('custom_topic_name') }}"
+                        maxlength="50"
                         class="w-full px-4 py-3 bg-brand-dark/50 border border-brand-light/10 rounded-xl text-brand-light placeholder-brand-light/40 focus:outline-none focus:border-brand-teal/50 focus:ring-2 focus:ring-brand-teal/20 transition-all font-medium"
                         placeholder="Masukkan nama topik konseling baru..."
                     >
+                    <p class="mt-2 text-[10px] text-brand-light/40 uppercase tracking-widest font-bold">Maksimal 50 karakter</p>
                 </div>
 
                 <!-- Reason -->
@@ -88,11 +94,11 @@
 
                 <!-- Info Box -->
                 <div class="p-5 bg-brand-teal/5 border border-brand-teal/20 rounded-xl">
-                    <div class="flex items-start gap-4">
-                            <svg class="w-5 h-5 text-brand-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                        </div>
+                    <div class="flex flex-col gap-3">
+                        <svg class="w-6 h-6 text-brand-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        
                         <div class="text-sm">
                             <p class="font-bold text-brand-teal uppercase tracking-widest text-xs mb-2">Informasi Penting:</p>
                             <ul class="space-y-1.5 text-brand-light/60">
@@ -108,6 +114,7 @@
                 <div class="flex flex-col sm:flex-row gap-4 pt-4">
                     <button 
                         type="submit" 
+                        onclick="return confirmAction(event, 'Konfirmasi Pengiriman', 'Apakah Anda yakin ingin mengirim permintaan konseling ini?', 'question', 'Ya, Kirim', 'Batal')"
                         class="flex-1 px-8 py-4 bg-brand-teal text-brand-dark rounded-xl font-bold hover:bg-[#5a8e91] transition-all shadow-[0_0_20px_rgba(118,171,174,0.3)] hover:shadow-[0_0_30px_rgba(118,171,174,0.5)] transform hover:-translate-y-0.5 active:scale-95"
                     >
                         Kirim Permintaan

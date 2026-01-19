@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Notification as AppNotification;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class CounselingRequestController extends Controller
 {
@@ -17,21 +18,32 @@ class CounselingRequestController extends Controller
      */
     public function index(Request $request)
     {
-        $query = CounselingRequest::with(['student']);
+        $query = CounselingRequest::where('is_visible_to_admin', true)->with(['student', 'schedule']);
         
         // Filter by status if provided
         if ($request->has('status')) {
             $query->where('status', $request->status);
         }
+
+        // Filter by search term
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->whereHas('student', function($sq) use ($search) {
+                    $sq->where('name', 'like', "%{$search}%");
+                })->orWhere('reason', 'like', "%{$search}%");
+            });
+        }
         
-        $requests = $query->latest()->paginate(15);
+        $requests = $query->latest()->paginate(15)->withQueryString();
 
         // Count for stats
         $counts = [
-            'all' => CounselingRequest::count(),
-            'pending' => CounselingRequest::where('status', 'pending')->count(),
-            'approved' => CounselingRequest::where('status', 'approved')->count(),
-            'rejected' => CounselingRequest::where('status', 'rejected')->count(),
+            'all' => CounselingRequest::where('is_visible_to_admin', true)->count(),
+            'pending' => CounselingRequest::where('is_visible_to_admin', true)->where('status', 'pending')->count(),
+            'approved' => CounselingRequest::where('is_visible_to_admin', true)->where('status', 'approved')->count(),
+            'rejected' => CounselingRequest::where('is_visible_to_admin', true)->where('status', 'rejected')->count(),
+            'canceled' => CounselingRequest::where('is_visible_to_admin', true)->where('status', 'canceled')->count(),
         ];
         
         return view('admin.counseling_requests.index', compact('requests', 'counts'));
@@ -42,9 +54,11 @@ class CounselingRequestController extends Controller
      */
     public function show(CounselingRequest $counseling_request)
     {
-        $counseling_request->load(['student', 'teacher']);
+        $counseling_request->load(['student', 'teacher', 'schedule']);
         
-        return view('admin.counseling_requests.show', compact('counseling_request'));
+        $teachers = User::whereIn('role', ['admin', 'guru_bk', 'wali_kelas'])->orderBy('name')->get();
+        
+        return view('admin.counseling_requests.show', compact('counseling_request', 'teachers'));
     }
 
     /**
@@ -53,40 +67,118 @@ class CounselingRequestController extends Controller
     public function approve(Request $request, CounselingRequest $counseling_request)
     {
         $request->validate([
-            'scheduled_date' => 'required|date|after_or_equal:today',
+            'scheduled_date' => 'nullable|date|after_or_equal:today',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
             'location' => 'nullable|string|max:255',
             'notes' => 'nullable|string|max:500',
+            'teacher_name' => 'required|string',
+        ], [
+            'end_time.after' => 'waktu selesai tidak boleh sama atau kurang dari waktu pukul',
         ]);
 
-        // Update request status
-        $counseling_request->update([
-            'status' => 'approved',
-            'teacher_id' => Auth::id(),
-            'notes' => $request->notes,
-        ]);
+        $scheduledDate = $request->filled('scheduled_date') ? $request->scheduled_date : now()->toDateString();
+        $location = $request->location ?: 'Ruang BK';
 
-        // Create schedule
-        CounselingSchedule::create([
-            'student_id' => $counseling_request->student_id,
-            'teacher_id' => Auth::id(),
-            'counseling_request_id' => $counseling_request->id,
-            'topic_id' => $counseling_request->topic_id,
-            'scheduled_date' => $request->scheduled_date,
-            'start_time' => $request->start_time,
-            'end_time' => $request->end_time,
-            'location' => $request->location,
-            'notes' => $request->notes,
-            'status' => 'scheduled',
-        ]);
+        // No longer connecting to User table for the "handling teacher" name
+        // We just take whatever they typed
+        $teacherName = trim($request->teacher_name);
+        
+        // Tracking who approved it (current admin/guru bk)
+        $approverId = Auth::id();
+        $scheduledDate = $request->filled('scheduled_date') ? $request->scheduled_date : now()->toDateString();
 
-        // Notify the student that their request has been approved
+        // Check for conflicts - ONLY check against other request-based schedules (whereNotNull counseling_request_id)
+        $conflict = CounselingSchedule::where('scheduled_date', $scheduledDate)
+            ->whereNotNull('counseling_request_id')
+            ->whereIn('status', ['scheduled', 'completed'])
+            ->where(function($query) use ($request) {
+                $query->where('start_time', '<', $request->end_time)
+                      ->where('end_time', '>', $request->start_time);
+            })
+            ->where(function($query) use ($request, $teacherName) {
+                // Group identity checks
+                $query->where(function($q) use ($request, $teacherName) {
+                    $q->where('student_id', $request->student_id)
+                      ->orWhere('teacher_id', Auth::id())
+                      ->orWhere('teacher_name', $teacherName)
+                      ->orWhere(function($sq) use ($request) {
+                          $sq->whereRaw('LOWER(location) = ?', [strtolower($request->location)])
+                            ->whereNotNull('location');
+                      });
+                });
+            })
+            ->first();
+
+        if ($conflict) {
+            $conflictDetail = '';
+            if ($conflict->student_id) {
+                $className = $conflict->student->schoolClass->name ?? '';
+                $conflictDetail = "{$conflict->student->name} (" . ($className ?: '-') . ")";
+            } elseif ($conflict->teacher_id == Auth::id() || $conflict->teacher_name == $teacherName) {
+                $conflictDetail = "Guru BK ({$teacherName})";
+            } else {
+                $conflictDetail = "Lokasi " . $conflict->location;
+            }
+
+            $conflictTime = substr($conflict->start_time, 0, 5) . ' - ' . substr($conflict->end_time, 0, 5);
+            return redirect()->back()
+                ->withInput()
+                ->with('error', "Jadwal bertabrakan dengan {$conflictDetail} pada jam {$conflictTime} WIB.");
+        }
+
+        try {
+            \DB::beginTransaction();
+
+            // Update request status
+            $counseling_request->update([
+                'status' => 'approved',
+                'teacher_id' => $approverId,
+                'teacher_name' => $teacherName,
+                'notes' => $request->notes,
+            ]);
+
+            // Create schedule
+            CounselingSchedule::create([
+                'student_id' => $counseling_request->student_id,
+                'teacher_id' => $approverId,
+                'teacher_name' => $teacherName,
+                'counseling_request_id' => $counseling_request->id,
+                'topic_id' => $counseling_request->topic_id,
+                'scheduled_date' => $scheduledDate,
+                'start_time' => $request->start_time,
+                'end_time' => $request->end_time,
+                'location' => $location,
+                'admin_notes' => $request->notes,
+                'status' => 'scheduled',
+            ]);
+
+            \DB::commit();
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Gagal memproses persetujuan: ' . $e->getMessage());
+        }
+
+        // Notify the student & parent that their request has been approved
+        $notifMessage = Str::limit('Permintaan konseling Anda telah disetujui. Jadwal: ' . $scheduledDate . ' ' . $request->start_time, 255);
         AppNotification::create([
             'user_id' => $counseling_request->student_id,
-            'message' => 'Permintaan konseling Anda telah disetujui. Jadwal: ' . $request->scheduled_date . ' ' . $request->start_time,
+            'message' => $notifMessage,
             'status' => 'unread',
         ]);
+
+        if ($counseling_request->student) {
+            foreach ($counseling_request->student->childrenConnections as $connection) {
+                $pNotifMsg = Str::limit("📅 Jadwal Konseling (" . $counseling_request->student->name . ") telah disetujui untuk tanggal " . $scheduledDate . " pukul " . $request->start_time, 255);
+                AppNotification::create([
+                    'user_id' => $connection->parent_id,
+                    'message' => $pNotifMsg,
+                    'status' => 'unread',
+                ]);
+            }
+        }
 
         return redirect()->route('admin.counseling_requests.index')
             ->with('success', 'Permintaan konseling berhasil disetujui dan jadwal telah dibuat.');
@@ -98,7 +190,7 @@ class CounselingRequestController extends Controller
     public function reject(Request $request, CounselingRequest $counseling_request)
     {
         $request->validate([
-            'rejection_reason' => 'nullable|string|max:500',
+            'rejection_reason' => 'required|string|max:500',
         ]);
 
         $counseling_request->update([
@@ -107,15 +199,27 @@ class CounselingRequestController extends Controller
             'notes' => $request->rejection_reason,
         ]);
 
-        // Notify the student that their request has been rejected
+        // Notify the student & parent that their request has been rejected
+        $notifMessage = Str::limit('Permintaan konseling Anda ditolak. Alasan: ' . ($request->rejection_reason ?? '-'), 255);
         AppNotification::create([
             'user_id' => $counseling_request->student_id,
-            'message' => 'Permintaan konseling Anda ditolak. Alasan: ' . ($request->rejection_reason ?? '-'),
+            'message' => $notifMessage,
             'status' => 'unread',
         ]);
 
+        if ($counseling_request->student) {
+            foreach ($counseling_request->student->childrenConnections as $connection) {
+                $pNotifMsg = Str::limit("❌ Permintaan Konseling (" . $counseling_request->student->name . ") ditolak. Alasan: " . ($request->rejection_reason ?? '-'), 255);
+                AppNotification::create([
+                    'user_id' => $connection->parent_id,
+                    'message' => $pNotifMsg,
+                    'status' => 'unread',
+                ]);
+            }
+        }
+
         return redirect()->route('admin.counseling_requests.index')
-            ->with('error', 'Permintaan konseling telah ditolak.');
+            ->with('success', 'Permintaan konseling telah ditolak.');
     }
 
     /**
@@ -142,9 +246,62 @@ class CounselingRequestController extends Controller
      */
     public function destroy(CounselingRequest $counseling_request)
     {
-        $counseling_request->delete();
+        // Jika sudah diarsipkan (is_visible_to_admin == false), maka hapus permanen
+        if (!$counseling_request->is_visible_to_admin) {
+            $counseling_request->delete();
+            return redirect()->route('admin.counseling_requests.index')
+                ->with('success', 'Data permintaan konseling berhasil dihapus permanen.');
+        }
+
+        // Jika status bukan PENDING (sudah diproses/selesai/batal), sembunyikan saja
+        if ($counseling_request->status !== 'pending') {
+            $counseling_request->update(['is_visible_to_admin' => false]);
+            return redirect()->route('admin.counseling_requests.index')
+                ->with('success', 'Permintaan telah diarsipkan dari daftar admin.');
+        }
+
+        // Jika masih PENDING, ubah status jadi canceled dan sembunyikan
+        $counseling_request->update([
+            'status' => 'canceled',
+            'is_visible_to_admin' => false
+        ]);
 
         return redirect()->route('admin.counseling_requests.index')
-            ->with('success', 'Permintaan konseling berhasil dihapus.');
+            ->with('success', 'Permintaan dibatalkan dan diarsipkan dari daftar admin.');
+    }
+
+    public function checkConflict(Request $request) 
+    {
+        $start_time = $request->start_time ?? $request->query('start_time');
+        $end_time = $request->end_time ?? $request->query('end_time');
+        $date = $request->date ?? $request->query('date', now()->toDateString());
+
+        // Admin is approving a request, check against actual schedules that also came from requests
+        $conflict = CounselingSchedule::with(['student.schoolClass'])
+            ->whereNotNull('counseling_request_id')
+            ->where('scheduled_date', $date)
+            ->whereIn('status', ['scheduled', 'completed'])
+            ->where(function($query) use ($start_time, $end_time) {
+                $query->where('start_time', '<', $end_time)
+                      ->where('end_time', '>', $start_time);
+            })
+            ->first();
+                
+        if ($conflict) {
+            return response()->json([
+                'conflict' => true,
+                'details' => [
+                    'student_name' => $conflict->student->name,
+                    'class_name' => $conflict->student->schoolClass->name ?? '-',
+                    'time_range' => \Carbon\Carbon::parse($conflict->start_time)->format('H:i') . ' - ' . \Carbon\Carbon::parse($conflict->end_time)->format('H:i'),
+                    'location' => $conflict->location
+                ],
+                'schedule_url' => $conflict->counseling_request_id 
+                    ? route('admin.counseling_requests.show', $conflict->counseling_request_id) 
+                    : route('admin.schedules.edit', $conflict->id)
+            ]);
+        }
+            
+        return response()->json(['conflict' => false]);
     }
 }

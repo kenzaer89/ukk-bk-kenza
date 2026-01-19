@@ -17,6 +17,7 @@ class TestUserSeeder extends Seeder
                 'name' => 'Kenza Erend Putratama',
                 'password' => Hash::make('password'),
                 'role' => 'student',
+                'phone' => '081234567890',
                 'class_id' => 13,
                 'absen' => '19',
                 'specialization' => 'RPL',
@@ -24,15 +25,6 @@ class TestUserSeeder extends Seeder
             ]
         );
 
-        // Create admin user
-        User::updateOrCreate(
-            ['email' => 'admin@gmail.com'],
-            [
-                'name' => 'Admin BK',
-                'password' => Hash::make('password'),
-                'role' => 'admin',
-            ]
-        );
 
         // Create guru_bk user
         User::updateOrCreate(
@@ -41,12 +33,12 @@ class TestUserSeeder extends Seeder
                 'name' => 'Guru BK',
                 'password' => Hash::make('password'),
                 'role' => 'guru_bk',
+                'phone' => '089988776655',
             ]
         );
 
         echo "Test users created successfully!\n";
         echo "Student: kenza@gmail.com / password\n";
-        echo "Admin: admin@gmail.com / password\n";
         echo "Guru BK: gurubk@gmail.com / password\n";
     }
 }

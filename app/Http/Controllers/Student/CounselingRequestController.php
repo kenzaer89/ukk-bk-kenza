@@ -16,7 +16,7 @@ class CounselingRequestController extends Controller
     {
         $status = $request->status;
         $query = CounselingRequest::where('student_id', Auth::id())
-                                ->with(['teacher', 'schedule']);
+                                ->with(['teacher', 'schedule', 'topic']);
 
         if ($status && in_array($status, ['pending', 'approved', 'rejected'])) {
             $query->where('status', $status);

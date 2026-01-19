@@ -20,7 +20,10 @@ class RegisteredUserController extends Controller
     public function create(): View
     {
         $classes = \App\Models\SchoolClass::orderBy('name')->get();
-        $students = \App\Models\User::where('role', 'student')->orderBy('name')->get();
+        $students = \App\Models\User::where('role', 'student')
+            ->withCount('childrenConnections')
+            ->orderBy('name')
+            ->get();
         return view('auth.register', compact('classes', 'students'));
     }
 
@@ -36,9 +39,21 @@ class RegisteredUserController extends Controller
             'email' => ['required', 'string', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'role' => ['required', 'string', 'in:student,parent,wali_kelas'],
+            'phone' => ['required', 'string', 'max:30'],
+            'nip' => ['nullable', 'required_if:role,wali_kelas', 'string', 'max:50'],
+            'nisn' => ['nullable', 'required_if:role,student', 'string', 'size:10'],
             'class_id' => ['nullable', 'required_if:role,student', 'exists:classes,id'],
             'absen' => ['nullable', 'required_if:role,student', 'integer', 'min:1'],
-            'student_id' => ['nullable', 'required_if:role,parent', 'exists:users,id'],
+            'student_ids' => ['nullable', 'required_if:role,parent', 'array'],
+            'student_ids.*' => [
+                'exists:users,id,role,student',
+                function ($attribute, $value, $fail) {
+                    $hasParent = \App\Models\ParentStudent::where('student_id', $value)->exists();
+                    if ($hasParent) {
+                        $fail('Siswa yang dipilih sudah memiliki orang tua yang terdaftar.');
+                    }
+                },
+            ],
         ]);
 
         $class = \App\Models\SchoolClass::find($request->class_id);
@@ -48,16 +63,22 @@ class RegisteredUserController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => $request->role,
+            'phone' => $request->phone,
+            'nisn' => $request->nisn,
+            'nip' => $request->nip,
             'class_id' => $request->class_id,
             'absen' => $request->absen,
             'specialization' => $class ? $class->jurusan : null,
+            'is_approved' => !in_array($request->role, ['parent', 'wali_kelas']),
         ]);
 
-        if ($request->role === 'parent' && $request->student_id) {
-            \App\Models\ParentStudent::create([
-                'parent_id' => $user->id,
-                'student_id' => $request->student_id,
-            ]);
+        if ($request->role === 'parent' && $request->has('student_ids')) {
+            foreach($request->student_ids as $sid) {
+                \App\Models\ParentStudent::create([
+                    'parent_id' => $user->id,
+                    'student_id' => $sid,
+                ]);
+            }
         }
 
         Auth::login($user);

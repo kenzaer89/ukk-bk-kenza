@@ -48,20 +48,13 @@
             </div>
 
             <div>
-                <label for="teacher_id" class="block text-sm font-medium text-gray-300 mb-2">Guru BK Penanggung Jawab <span class="text-red-500">*</span></label>
-                <select name="teacher_id" id="teacher_id" required
-                        oninvalid="this.setCustomValidity('Silakan pilih guru BK dalam daftar')"
-                        oninput="this.setCustomValidity('')"
-                        class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-sm text-white">
-                    <option value="">-- Pilih Guru BK --</option>
-                    @foreach ($teachers as $teacher)
-                        <option value="{{ $teacher->id }}" 
-                            {{ (old('teacher_id') == $teacher->id || Auth::id() == $teacher->id) ? 'selected' : '' }}>
-                            {{ $teacher->name }}
-                        </option>
-                    @endforeach
-                </select>
-                @error('teacher_id') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
+                <label for="teacher_name" class="block text-sm font-medium text-gray-300 mb-2">Guru BK Penanggung Jawab <span class="text-red-500">*</span></label>
+                <input type="text" name="teacher_name" id="teacher_name" 
+                       value="{{ old('teacher_name') }}" 
+                       placeholder="Ketik nama guru penanggung jawab..." 
+                       required
+                       class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-sm text-white">
+                @error('teacher_name') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
             </div>
 
             <div>
@@ -86,9 +79,11 @@
                 <label for="custom_topic" class="block text-sm font-medium text-gray-300 mb-2 font-bold text-indigo-400">📝 Tulis Topik Baru <span class="text-red-500">*</span></label>
                 <input type="text" name="custom_topic" id="custom_topic" value="{{ old('custom_topic') }}"
                        placeholder="Masukkan nama topik baru..."
+                       maxlength="50"
                        oninvalid="this.setCustomValidity('Tuliskan nama topik baru')"
                        oninput="this.setCustomValidity('')"
                        class="w-full p-3 bg-gray-700 border border-indigo-500/50 rounded-lg text-sm text-white focus:ring-indigo-500 focus:border-indigo-500">
+                <p class="mt-2 text-[10px] text-brand-light/40 uppercase tracking-widest font-bold italic">Maksimal 50 karakter</p>
                 @error('custom_topic') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
             </div>
 
@@ -96,7 +91,7 @@
                 <div>
                     <label for="scheduled_date" class="block text-sm font-medium text-gray-300 mb-2">Tanggal Sesi <span class="text-red-500">*</span></label>
                     <input type="date" name="scheduled_date" id="scheduled_date" value="{{ old('scheduled_date', date('Y-m-d')) }}" 
-                        min="{{ date('Y-m-d') }}" required
+                        min="{{ date('Y-m-d') }}" required style="color-scheme: dark;"
                         oninvalid="this.setCustomValidity('Pilih tanggal sesi yang valid')"
                         oninput="this.setCustomValidity('')"
                         class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-sm text-white">
@@ -105,16 +100,18 @@
                 <div>
                     <label for="start_time" class="block text-sm font-medium text-gray-300 mb-2">Mulai Pukul <span class="text-red-500">*</span></label>
                     <input type="time" name="start_time" id="start_time" value="{{ old('start_time') }}" required
-                        oninvalid="this.setCustomValidity('Isi waktu mulai')"
+                        oninvalid="this.setCustomValidity('Harap isi waktu mulai')"
                         oninput="this.setCustomValidity('')"
+                        style="color-scheme: dark;"
                         class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-sm text-white">
                     @error('start_time') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label for="end_time" class="block text-sm font-medium text-gray-300 mb-2">Selesai Pukul <span class="text-red-500">*</span></label>
                     <input type="time" name="end_time" id="end_time" value="{{ old('end_time') }}" required disabled
-                        oninvalid="this.setCustomValidity('Isi waktu selesai')"
+                        oninvalid="this.setCustomValidity('Harap isi waktu selesai')"
                         oninput="this.setCustomValidity('')"
+                        style="color-scheme: dark;"
                         class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-sm text-white disabled:opacity-50 disabled:cursor-not-allowed">
                     @error('end_time') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
                 </div>
@@ -169,16 +166,12 @@
         // Run on change
         topicSelect.addEventListener('change', toggleCustomTopic);
 
-        // Function to toggle end_time field
         function toggleEndTime() {
             if (startTimeInput.value && startTimeInput.value.trim() !== '') {
                 endTimeInput.disabled = false;
-                // Set minimum value for end_time to be greater than start_time
-                endTimeInput.min = startTimeInput.value;
             } else {
                 endTimeInput.disabled = true;
                 endTimeInput.value = '';
-                endTimeInput.removeAttribute('min');
             }
         }
 
@@ -186,12 +179,18 @@
         function validateTimeDifference() {
             if (startTimeInput.value && endTimeInput.value) {
                 if (endTimeInput.value <= startTimeInput.value) {
-                    endTimeInput.setCustomValidity('Waktu selesai harus lebih besar dari waktu mulai');
+                    endTimeInput.setCustomValidity('waktu selesai tidak boleh sama atau kurang dari waktu pukul');
                     return false;
                 } else {
                     endTimeInput.setCustomValidity('');
                     return true;
                 }
+            } else if (startTimeInput.value && !endTimeInput.value) {
+                endTimeInput.setCustomValidity('Harap isi waktu selesai');
+                return false;
+            } else if (!startTimeInput.value && endTimeInput.value) {
+                startTimeInput.setCustomValidity('Harap isi waktu mulai');
+                return false;
             }
             return true;
         }
@@ -212,10 +211,54 @@
         endTimeInput.addEventListener('change', validateTimeDifference);
 
         // Validate on form submit
-        form.addEventListener('submit', function(e) {
+        form.addEventListener('submit', async function(e) {
             if (!validateTimeDifference()) {
                 e.preventDefault();
                 endTimeInput.reportValidity();
+                return;
+            }
+
+            // Mencegah submit default jika belum dikonfirmasi lewat AJAX
+            if (form.dataset.confirmed !== 'true') {
+                e.preventDefault();
+                
+                try {
+                    const response = await fetch("{{ route('admin.schedules.check_conflict') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({
+                            scheduled_date: document.getElementById('scheduled_date').value,
+                            start_time: startTimeInput.value,
+                            end_time: endTimeInput.value,
+                            student_id: document.getElementById('student_id').value,
+                            teacher_name: document.getElementById('teacher_name').value,
+                            location: document.getElementById('location').value,
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.conflict) {
+                        Swal.fire({
+                            title: 'Jadwal Bentrok!',
+                            text: data.message,
+                            icon: 'error',
+                            confirmButtonColor: '#3085d6',
+                            confirmButtonText: 'Ok, Saya Mengerti'
+                        });
+                    } else {
+                        form.dataset.confirmed = 'true';
+                        form.submit();
+                    }
+                } catch (error) {
+                    console.error('Error checking conflict:', error);
+                    // Jika error cek, tetap biarkan submit normal agar tidak menghalangi user
+                    form.dataset.confirmed = 'true';
+                    form.submit();
+                }
             }
         });
 

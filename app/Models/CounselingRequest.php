@@ -14,11 +14,13 @@ class CounselingRequest extends Model
     protected $fillable = [
         'student_id',
         'teacher_id', // Bisa null saat diajukan
+        'teacher_name',
         'topic_id',   // ID topik konseling
         'reason',     // Deskripsi/Topik dari form siswa
         'status',     // default 'pending'
         'requested_at',
         'notes',      // Catatan admin (untuk penolakan/penundaan)
+        'is_visible_to_admin',
     ];
 
     protected $casts = [
