@@ -201,6 +201,8 @@ class UserController extends Controller
         } elseif (in_array($request->role, ['guru_bk', 'wali_kelas'])) {
             $rules['nip'] = ['required', 'string', 'max:50', Rule::unique('users', 'nip')->ignore($userId)];
             $rules['class_id'] = 'nullable';
+            
+
         } elseif ($request->role == 'admin') {
             $rules['nip'] = 'nullable';
             $rules['class_id'] = 'nullable';

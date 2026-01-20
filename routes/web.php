@@ -98,7 +98,7 @@ Route::middleware(['auth'])->group(function () {
     // --- GURU BK ONLY: OPERASIONAL BIMBINGAN KONSELING ---
     Route::middleware(['role:guru_bk'])->prefix('admin')->name('admin.')->group(function () {
         // PERMINTAAN KONSELING
-        Route::get('counseling_requests/check-conflict', [App\Http\Controllers\Admin\CounselingRequestController::class, 'checkConflict'])->name('counseling_requests.check_conflict');
+        Route::post('counseling_requests/check-conflict', [App\Http\Controllers\Admin\CounselingRequestController::class, 'checkConflict'])->name('counseling_requests.check_conflict');
         Route::resource('counseling_requests', App\Http\Controllers\Admin\CounselingRequestController::class)->only(['index', 'show', 'destroy']);
         Route::post('counseling_requests/{counseling_request}/approve', [App\Http\Controllers\Admin\CounselingRequestController::class, 'approve'])->name('counseling_requests.approve');
         Route::post('counseling_requests/{counseling_request}/reject', [App\Http\Controllers\Admin\CounselingRequestController::class, 'reject'])->name('counseling_requests.reject');

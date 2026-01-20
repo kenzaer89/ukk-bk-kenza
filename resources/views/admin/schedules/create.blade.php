@@ -212,6 +212,8 @@
 
         // Validate on form submit
         form.addEventListener('submit', async function(e) {
+            console.log('Form submit triggered');
+            
             if (!validateTimeDifference()) {
                 e.preventDefault();
                 endTimeInput.reportValidity();
@@ -222,6 +224,19 @@
             if (form.dataset.confirmed !== 'true') {
                 e.preventDefault();
                 
+                console.log('Checking for schedule conflicts...');
+                
+                const requestData = {
+                    scheduled_date: document.getElementById('scheduled_date').value,
+                    start_time: startTimeInput.value,
+                    end_time: endTimeInput.value,
+                    student_id: document.getElementById('student_id').value,
+                    teacher_name: document.getElementById('teacher_name').value,
+                    location: document.getElementById('location').value,
+                };
+                
+                console.log('Request data:', requestData);
+                
                 try {
                     const response = await fetch("{{ route('admin.schedules.check_conflict') }}", {
                         method: 'POST',
@@ -229,36 +244,96 @@
                             'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': '{{ csrf_token() }}'
                         },
-                        body: JSON.stringify({
-                            scheduled_date: document.getElementById('scheduled_date').value,
-                            start_time: startTimeInput.value,
-                            end_time: endTimeInput.value,
-                            student_id: document.getElementById('student_id').value,
-                            teacher_name: document.getElementById('teacher_name').value,
-                            location: document.getElementById('location').value,
-                        })
+                        body: JSON.stringify(requestData)
                     });
                     
+                    console.log('Response status:', response.status);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
                     const data = await response.json();
+                    console.log('Conflict check result:', data);
                     
                     if (data.conflict) {
+                        console.log('Conflict detected, showing alert');
                         Swal.fire({
-                            title: 'Jadwal Bentrok!',
-                            text: data.message,
-                            icon: 'error',
-                            confirmButtonColor: '#3085d6',
-                            confirmButtonText: 'Ok, Saya Mengerti'
+                            title: '⚠️ Jadwal Bentrok!',
+                            html: `
+                                <div style="text-align: left; padding: 1rem;">
+                                    <div style="background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%); border-left: 4px solid #F59E0B; padding: 1rem; border-radius: 0.75rem; margin-bottom: 1rem;">
+                                        <p style="margin: 0; color: #92400E; font-weight: 600; font-size: 0.95rem; line-height: 1.6;">
+                                            ${data.message}
+                                        </p>
+                                    </div>
+                                    <div style="background: rgba(255, 255, 255, 0.05); padding: 1rem; border-radius: 0.75rem; border: 1px solid rgba(255, 255, 255, 0.1);">
+                                        <p style="margin: 0 0 0.5rem 0; color: #94a3b8; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700;">
+                                            ⏰ Waktu yang Anda pilih
+                                        </p>
+                                        <p style="margin: 0; color: #f8fafc; font-size: 1.1rem; font-weight: 600;">
+                                            ${requestData.start_time} - ${requestData.end_time} WIB
+                                        </p>
+                                    </div>
+                                    <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(45, 212, 191, 0.1); border-radius: 0.75rem; border: 1px solid rgba(45, 212, 191, 0.2);">
+                                        <p style="margin: 0; color: #2dd4bf; font-size: 0.9rem; font-weight: 500; line-height: 1.6;">
+                                            💡 <strong>Tips:</strong> Silakan pilih waktu lain, atau klik <strong>"Lanjutkan"</strong> jika Anda yakin ingin membuat jadwal ini meskipun bertabrakan.
+                                        </p>
+                                    </div>
+                                </div>
+                            `,
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#2dd4bf',
+                            cancelButtonColor: '#64748b',
+                            confirmButtonText: '✓ Lanjutkan Tetap',
+                            cancelButtonText: '✕ Batal',
+                            customClass: {
+                                popup: 'swal-conflict-popup',
+                                title: 'swal-conflict-title',
+                                htmlContainer: 'swal-conflict-content',
+                                confirmButton: 'swal-confirm-btn',
+                                cancelButton: 'swal-cancel-btn'
+                            },
+                            buttonsStyling: true,
+                            allowOutsideClick: false,
+                            allowEscapeKey: true,
+                            showClass: {
+                                popup: 'animate__animated animate__fadeInDown animate__faster'
+                            },
+                            hideClass: {
+                                popup: 'animate__animated animate__fadeOutUp animate__faster'
+                            }
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                console.log('User chose to continue despite conflict');
+                                // Add bypass flag
+                                const hiddenInput = document.createElement('input');
+                                hiddenInput.type = 'hidden';
+                                hiddenInput.name = 'ignore_conflict';
+                                hiddenInput.value = '1';
+                                form.appendChild(hiddenInput);
+                                
+                                form.dataset.confirmed = 'true';
+                                form.submit();
+                            } else {
+                                console.log('User cancelled schedule creation');
+                            }
                         });
                     } else {
+                        console.log('No conflict detected, submitting form');
                         form.dataset.confirmed = 'true';
                         form.submit();
                     }
                 } catch (error) {
                     console.error('Error checking conflict:', error);
+                    console.log('Falling back to normal submit due to error');
                     // Jika error cek, tetap biarkan submit normal agar tidak menghalangi user
                     form.dataset.confirmed = 'true';
                     form.submit();
                 }
+            } else {
+                console.log('Form already confirmed, allowing submit');
             }
         });
 

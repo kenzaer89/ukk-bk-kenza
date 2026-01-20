@@ -134,7 +134,7 @@
                                         nisn: '{{ $user->nisn ?? '-' }}',
                                         absen: '{{ $user->absen ?? '-' }}',
                                         points: '{{ $user->points ?? '-' }}',
-                                        class: '{{ $user->role === 'wali_kelas' ? ($user->managedClass?->name ?? '-') : ($user->schoolClass?->name ?? '-') }}',
+                                        class: '{{ $user->role === "wali_kelas" ? ($user->managedClass?->name ?? "-") : ($user->schoolClass?->name ?? "-") }}',
                                         jurusan: '{{ $user->specialization_full_name ?? '-' }}',
                                         children: '{{ $user->students?->pluck('name')->join(', ') ?: '-' }}',
                                         is_approved: {{ $user->is_approved ? 'true' : 'false' }}
@@ -157,9 +157,13 @@
                                     @endif
 
                                     @if ($user->email !== 'adminbk@gmail.com')
-                                        <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pengguna ini?')">
+                                        <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="inline delete-user-form" 
+                                              data-user-name="{{ $user->name }}"
+                                              data-user-email="{{ $user->email }}"
+                                              data-user-role="{{ $user->role }}"
+                                              data-user-class="{{ $user->role === 'student' ? ($user->schoolClass->name ?? '-') : '' }}">
                                             @csrf @method('DELETE')
-                                            <button type="submit" class="p-2 bg-white/5 hover:bg-red-500 text-gray-400 hover:text-white rounded-lg transition-all" title="Hapus">
+                                            <button type="button" onclick="confirmDelete(this)" class="p-2 bg-white/5 hover:bg-red-500 text-gray-400 hover:text-white rounded-lg transition-all" title="Hapus">
                                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                                 </svg>
@@ -221,23 +225,7 @@
                     </div>
                     <div>
                         <label class="text-[9px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Nomor Telepon</label>
-                        <div class="flex items-center gap-3">
-                            <p class="text-white font-medium" x-text="selectedUser?.phone"></p>
-                            <template x-if="selectedUser?.phone && selectedUser?.phone !== '-'">
-                                <div class="flex items-center gap-2">
-                                    <a :href="'tel:' + selectedUser?.phone" class="p-1 bg-white/5 hover:bg-brand-teal text-gray-400 hover:text-brand-dark rounded transition-all" title="Telepon">
-                                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-                                        </svg>
-                                    </a>
-                                    <a :href="'https://wa.me/' + (selectedUser?.phone || '').replace(/[^0-9]/g, '')" target="_blank" class="p-1 bg-white/5 hover:bg-green-500 text-gray-400 hover:text-white rounded transition-all" title="WhatsApp">
-                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.246 2.248 3.484 5.232 3.484 8.412-.003 6.557-5.338 11.892-11.893 11.892-1.997-.001-3.951-.5-5.688-1.448l-6.309 1.656zm6.223-3.828c1.53.912 3.51 1.558 5.628 1.559 5.454 0 9.893-4.439 9.896-9.895.002-2.641-1.026-5.124-2.895-6.995-1.868-1.869-4.352-2.896-6.994-2.896-5.455 0-9.893 4.439-9.896 9.895-.001 2.15.56 4.24 1.62 6.059l-1.066 3.893 3.996-1.047zm11.367-7.462c-.312-.156-1.848-.912-2.134-1.017-.286-.105-.494-.156-.701.156-.207.312-.801 1.017-.982 1.223-.182.206-.364.232-.676.077-.312-.156-1.316-.485-2.508-1.548-.926-.826-1.551-1.846-1.733-2.158-.182-.312-.019-.481-.175-.636-.14-.139-.312-.364-.468-.546-.156-.182-.208-.312-.312-.52-.104-.208-.052-.39-.026-.546.026-.156.208-.52.312-.728.104-.208.156-.364.234-.52.078-.156.039-.286-.02-.442-.058-.156-.494-1.196-.676-1.638-.177-.427-.357-.369-.491-.376-.127-.007-.273-.008-.419-.008-.146 0-.383.055-.584.273-.201.218-.767.751-.767 1.832 0 1.081.787 2.126.897 2.276.109.15.539 2.274 2.296 3.033.418.18.744.287 1.0.368.42.133.801.114 1.103.069.336-.05.845-.345 1.04-.678.195-.333.195-.618.136-.678-.058-.06-.215-.156-.527-.312z"></path>
-                                        </svg>
-                                    </a>
-                                </div>
-                            </template>
-                        </div>
+                        <p class="text-white font-medium" x-text="selectedUser?.phone"></p>
                     </div>
                 </div>
 
@@ -291,9 +279,9 @@
                                 <p class="text-2xl font-black text-brand-teal" x-text="selectedUser?.nip"></p>
                             </div>
                             
-                            <template x-if="selectedUser?.role === 'wali_kelas' && selectedUser?.class !== '-'">
-                                <div class="bg-brand-teal/10 p-5 rounded-2xl border border-brand-teal/20">
-                                    <label class="text-[9px] font-bold text-brand-teal uppercase tracking-widest block mb-2">Wali Kelas</label>
+                            <template x-if="selectedUser?.role === 'wali_kelas' && selectedUser?.class && selectedUser?.class !== '-'">
+                                <div class="bg-brand-teal/10 p-5 rounded-2xl border border-brand-teal/20 mt-4">
+                                    <label class="text-[9px] font-bold text-brand-teal uppercase tracking-widest block mb-2">Wali Kelas Dari</label>
                                     <div class="flex items-center gap-2">
                                         <svg class="w-5 h-5 text-brand-teal" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
@@ -316,4 +304,88 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+function confirmDelete(button) {
+    const form = button.closest('form');
+    const userName = form.dataset.userName;
+    const userEmail = form.dataset.userEmail;
+    const userRole = form.dataset.userRole;
+    const userClass = form.dataset.userClass;
+    
+    // Build user info display
+    let userDetails = `
+        <div style="background: linear-gradient(135deg, rgba(45, 212, 191, 0.1) 0%, rgba(45, 212, 191, 0.05) 100%); 
+                    padding: 1.5rem; 
+                    border-radius: 1rem; 
+                    border: 2px solid rgba(45, 212, 191, 0.3);
+                    margin-bottom: 1.5rem;">
+            <div style="text-align: center;">
+                <div style="width: 80px; 
+                           height: 80px; 
+                           margin: 0 auto 1rem; 
+                           background: linear-gradient(135deg, #2dd4bf 0%, #0d9488 100%); 
+                           border-radius: 50%; 
+                           display: flex; 
+                           align-items: center; 
+                           justify-content: center;
+                           box-shadow: 0 8px 20px rgba(45, 212, 191, 0.3);">
+                    <span style="font-size: 2.5rem; font-weight: 900; color: #0f172a;">${userName.charAt(0).toUpperCase()}</span>
+                </div>
+                <h3 style="margin: 0 0 0.5rem 0; font-size: 1.5rem; font-weight: 800; color: #2dd4bf;">${userName}</h3>
+                <p style="margin: 0 0 0.25rem 0; color: #94a3b8; font-size: 0.9rem;">📧 ${userEmail}</p>
+                ${userRole === 'student' && userClass && userClass !== '-' ? 
+                    `<p style="margin: 0; color: #2dd4bf; font-weight: 700; font-size: 1rem;">🎓 ${userClass}</p>` 
+                    : ''}
+            </div>
+        </div>
+    `;
+    
+    Swal.fire({
+        title: '🗑️ Hapus Pengguna?',
+        html: `
+            <div style="padding: 0.5rem;">
+                ${userDetails}
+                <div style="background: rgba(239, 68, 68, 0.1); 
+                           padding: 1rem; 
+                           border-radius: 0.75rem; 
+                           border-left: 4px solid #EF4444;">
+                    <p style="margin: 0; color: #f87171; font-size: 0.9rem; line-height: 1.6; font-weight: 500;">
+                        ⚠️ Semua data pengguna ini akan terhapus permanen dan tidak dapat dikembalikan.
+                    </p>
+                </div>
+            </div>
+        `,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#EF4444',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: '✓ Ya, Hapus',
+        cancelButtonText: '✕ Batal',
+        customClass: {
+            popup: 'swal-delete-popup',
+            title: 'swal-delete-title',
+            htmlContainer: 'swal-delete-content',
+            confirmButton: 'swal-confirm-delete-btn',
+            cancelButton: 'swal-cancel-btn'
+        },
+        buttonsStyling: true,
+        allowOutsideClick: false,
+        allowEscapeKey: true,
+        width: '32rem',
+        showClass: {
+            popup: 'animate__animated animate__zoomIn animate__faster'
+        },
+        hideClass: {
+            popup: 'animate__animated animate__zoomOut animate__faster'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            form.submit();
+        }
+    });
+}
+</script>
+@endpush
 @endsection

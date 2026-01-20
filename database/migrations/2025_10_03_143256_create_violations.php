@@ -23,9 +23,17 @@ return new class extends Migration
             $table->foreignId('rule_id')
                   ->constrained('rules')
                   ->restrictOnDelete();
+
+            $table->foreignId('teacher_id')
+                  ->nullable()
+                  ->constrained('users')
+                  ->nullOnDelete();
             
             $table->date('violation_date');
-            $table->text('notes')->nullable();
+            $table->text('description')->nullable(); // Renamed from notes
+            $table->string('status')->default('pending');
+            $table->boolean('is_visible_to_admin')->default(true);
+            $table->text('follow_up_action')->nullable();
             
             // Timestamps otomatis (created_at & updated_at)
             $table->timestamps();

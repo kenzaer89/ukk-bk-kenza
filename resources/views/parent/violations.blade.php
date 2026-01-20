@@ -54,7 +54,7 @@
                             </span>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="flex flex-wrap gap-x-12 gap-y-6">
                             <div class="flex items-start gap-3">
                                 <div class="w-8 h-8 rounded-lg bg-gray-700/50 flex items-center justify-center shrink-0">
                                     <svg class="w-4 h-4 text-brand-light/60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -93,9 +93,9 @@
                         </div>
 
                         @if($violation->description)
-                            <div class="mt-6 p-4 bg-gray-900/30 rounded-xl border border-white/5 max-h-[150px] overflow-y-auto">
-                                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-2">Catatan Konseling:</p>
-                                <p class="text-brand-light/80 text-sm italic break-words whitespace-pre-wrap">{{ $violation->description }}</p>
+                            <div class="mt-6 p-4 bg-gray-900/30 rounded-xl border border-white/5">
+                                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-2">PESAN DARI GURU BK:</p>
+                                <p class="text-brand-light/80 text-sm italic break-all whitespace-pre-wrap">{{ $violation->description }}</p>
                             </div>
                         @endif
                     </div>

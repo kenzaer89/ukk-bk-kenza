@@ -72,10 +72,10 @@
 
             <div>
                 <label for="point" class="block text-sm font-medium text-gray-300 mb-2">Poin Prestasi</label>
-                <input type="number" name="point" id="point" value="{{ old('point', $achievement->point) }}" min="0" max="150"
-                       oninvalid="this.setCustomValidity('Masukkan jumlah poin (0-150)')"
-                       oninput="this.setCustomValidity('')"
-                       class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:ring-yellow-500 focus:border-yellow-500">
+                <input type="number" name="point" id="point" value="{{ old('point', $achievement->point) }}" min="0" max="99"
+       oninvalid="this.setCustomValidity('Masukkan jumlah poin (0-99)')"
+       oninput="this.setCustomValidity(''); if(this.value.length > 2) this.value = this.value.slice(0, 2);"
+       class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:ring-yellow-500 focus:border-yellow-500">
                 <p class="text-xs text-gray-400 mt-1 italic">Opsional: Mengubah poin akan menyesuaikan total poin siswa secara otomatis</p>
                 @error('point') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
             </div>

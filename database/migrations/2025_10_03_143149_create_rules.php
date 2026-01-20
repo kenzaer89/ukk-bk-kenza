@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('name',191);
             $table->text('description')->nullable();
+            $table->string('category', 100)->nullable();
+            $table->boolean('is_custom')->default(false);
             $table->integer('points')->default(0);
             
             // GANTI BARIS LAMA INI:

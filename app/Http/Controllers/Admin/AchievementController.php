@@ -55,7 +55,7 @@ class AchievementController extends Controller
             'student_id' => 'required|exists:users,id,role,student',
             'name' => 'required|string|max:255',
             'level' => 'nullable|string|max:100',
-            'point' => 'nullable|integer|min:0|max:150',
+            'point' => 'nullable|integer|min:0|max:99',
             'achievement_date' => 'required|date|before_or_equal:today',
             'description' => 'required|string|max:500',
         ]);
@@ -127,7 +127,7 @@ class AchievementController extends Controller
             'student_id' => 'required|exists:users,id,role,student',
             'name' => 'required|string|max:255',
             'level' => 'nullable|string|max:100',
-            'point' => 'nullable|integer|min:0|max:150',
+            'point' => 'nullable|integer|min:0|max:99',
             'achievement_date' => 'required|date|before_or_equal:today',
             'description' => 'required|string|max:500',
         ]);

@@ -12,13 +12,17 @@ return new class extends Migration
     public function up(): void
     {
        Schema::create('counseling_requests', function (Blueprint $table) {
-        $table->id();
-        $table->foreignId('student_id')->constrained('users')->cascadeOnDelete();
-        $table->foreignId('teacher_id')->nullable()->constrained('users')->nullOnDelete();
-        $table->timestamp('requested_at')->useCurrent();
-        $table->text('reason')->nullable();
-        $table->enum('status',['pending','approved','rejected'])->default('pending');
-        $table->timestamps();
+            $table->id();
+            $table->foreignId('student_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('teacher_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->string('teacher_name')->nullable();
+            $table->foreignId('topic_id')->nullable()->constrained('topics')->nullOnDelete();
+            $table->timestamp('requested_at')->useCurrent();
+            $table->text('reason')->nullable();
+            $table->enum('status',['pending','approved','rejected','canceled','completed'])->default('pending');
+            $table->boolean('is_visible_to_admin')->default(true);
+            $table->text('notes')->nullable();
+            $table->timestamps();
 
 
         $table->index('student_id','idx_cr_student_id');

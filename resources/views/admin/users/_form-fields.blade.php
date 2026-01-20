@@ -128,6 +128,8 @@
             @error('nip') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
         </div>
 
+
+
     </div>
 
     {{-- 5. Field Dinamis (Orang Tua) --}}
@@ -192,6 +194,8 @@
                 });
             });
 
+
+
             // Show relevant section and ENABLE its inputs
             if (role === 'student') {
                 studentFields.classList.remove('hidden');
@@ -199,6 +203,8 @@
             } else if (role === 'wali_kelas' || role === 'guru_bk') {
                 teacherFields.classList.remove('hidden');
                 teacherFields.querySelectorAll('input, select, textarea').forEach(input => input.disabled = false);
+                
+
             } else if (role === 'parent') {
                 parentFields.classList.remove('hidden');
                 parentFields.querySelectorAll('input, select, textarea').forEach(input => input.disabled = false);

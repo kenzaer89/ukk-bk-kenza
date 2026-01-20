@@ -14,10 +14,14 @@ return new class extends Migration
         Schema::create('achievements', function (Blueprint $table) {
             $table->id();
             $table->foreignId('student_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('teacher_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('name', 255);
-            $table->enum('level', ['school','district','province','national'])->default('school');
+            $table->string('level', 100)->default('school');
+            $table->integer('point')->default(0);
+            $table->boolean('is_visible_to_admin')->default(true);
             $table->date('achievement_date')->nullable();
             $table->text('notes')->nullable();
+            $table->text('description')->nullable();
             $table->timestamps(); // created_at & updated_at otomatis
 
             $table->index('student_id', 'idx_achievements_student_id');

@@ -110,7 +110,7 @@ class CounselingRequestController extends Controller
             })
             ->first();
 
-        if ($conflict) {
+        if ($conflict && !$request->has('ignore_conflict')) {
             $conflictDetail = '';
             if ($conflict->student_id) {
                 $className = $conflict->student->schoolClass->name ?? '';
@@ -162,7 +162,7 @@ class CounselingRequestController extends Controller
         }
 
         // Notify the student & parent that their request has been approved
-        $notifMessage = Str::limit('Permintaan konseling Anda telah disetujui. Jadwal: ' . $scheduledDate . ' ' . $request->start_time, 255);
+        $notifMessage = Str::limit('Permintaan konseling Anda telah disetujui. Jadwal: ' . $scheduledDate . ' ' . $request->start_time, 190);
         AppNotification::create([
             'user_id' => $counseling_request->student_id,
             'message' => $notifMessage,
@@ -171,7 +171,7 @@ class CounselingRequestController extends Controller
 
         if ($counseling_request->student) {
             foreach ($counseling_request->student->childrenConnections as $connection) {
-                $pNotifMsg = Str::limit("📅 Jadwal Konseling (" . $counseling_request->student->name . ") telah disetujui untuk tanggal " . $scheduledDate . " pukul " . $request->start_time, 255);
+                $pNotifMsg = Str::limit("📅 Jadwal Konseling (" . $counseling_request->student->name . ") telah disetujui untuk tanggal " . $scheduledDate . " pukul " . $request->start_time, 190);
                 AppNotification::create([
                     'user_id' => $connection->parent_id,
                     'message' => $pNotifMsg,
@@ -200,7 +200,7 @@ class CounselingRequestController extends Controller
         ]);
 
         // Notify the student & parent that their request has been rejected
-        $notifMessage = Str::limit('Permintaan konseling Anda ditolak. Alasan: ' . ($request->rejection_reason ?? '-'), 255);
+        $notifMessage = Str::limit('Permintaan konseling Anda ditolak. Alasan: ' . ($request->rejection_reason ?? '-'), 190);
         AppNotification::create([
             'user_id' => $counseling_request->student_id,
             'message' => $notifMessage,
@@ -209,7 +209,7 @@ class CounselingRequestController extends Controller
 
         if ($counseling_request->student) {
             foreach ($counseling_request->student->childrenConnections as $connection) {
-                $pNotifMsg = Str::limit("❌ Permintaan Konseling (" . $counseling_request->student->name . ") ditolak. Alasan: " . ($request->rejection_reason ?? '-'), 255);
+                $pNotifMsg = Str::limit("❌ Permintaan Konseling (" . $counseling_request->student->name . ") ditolak. Alasan: " . ($request->rejection_reason ?? '-'), 190);
                 AppNotification::create([
                     'user_id' => $connection->parent_id,
                     'message' => $pNotifMsg,

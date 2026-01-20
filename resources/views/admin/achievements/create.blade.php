@@ -73,10 +73,10 @@
 
             <div>
                 <label for="point" class="block text-sm font-medium text-gray-300 mb-2">Poin Prestasi</label>
-                <input type="number" name="point" id="point" value="{{ old('point') }}" min="0" max="150"
+                <input type="number" name="point" id="point" value="{{ old('point') }}" min="0" max="99"
                        placeholder="Contoh: 10 (Kosongkan jika tidak ada poin)"
-                       oninvalid="this.setCustomValidity('Masukkan jumlah poin (0-150)')"
-                       oninput="this.setCustomValidity('')"
+                       oninvalid="this.setCustomValidity('Masukkan jumlah poin (0-99)')"
+                       oninput="this.setCustomValidity(''); if(this.value.length > 2) this.value = this.value.slice(0, 2);"
                        class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:ring-green-500 focus:border-green-500">
                 <p class="text-xs text-gray-400 mt-1 italic">Opsional: Poin akan ditambahkan ke total poin siswa</p>
                 @error('point') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
@@ -87,8 +87,12 @@
                 <textarea name="description" id="description" rows="3" required maxlength="500"
                           placeholder="Jelaskan detail prestasi yang diraih..."
                           oninvalid="this.setCustomValidity('Harap isi deskripsi prestasi')"
-                          oninput="this.setCustomValidity('')"
+                          oninput="this.setCustomValidity(''); document.getElementById('achievement-char-count').innerText = this.value.length;"
                           class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white">{{ old('description') }}</textarea>
+                <div class="flex justify-between items-center mt-1">
+                    <p class="text-[10px] text-brand-light/40 uppercase tracking-widest font-bold italic">Maksimal 500 karakter</p>
+                    <p class="text-[10px] text-brand-light/60 font-bold"><span id="achievement-char-count">0</span> / 500</p>
+                </div>
                 @error('description') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
             </div>
 

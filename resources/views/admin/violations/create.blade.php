@@ -76,8 +76,12 @@
                 <label for="description" class="block text-sm font-medium text-gray-300 mb-2">Catatan Tambahan <span class="text-red-500">*</span></label>
                 <textarea name="description" id="description" rows="4" required maxlength="500"
                           oninvalid="this.setCustomValidity('Harap isi catatan pelanggaran')"
-                          oninput="this.setCustomValidity('')"
+                          oninput="this.setCustomValidity(''); document.getElementById('violation-char-count').innerText = this.value.length;"
                           class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-red-500 focus:border-red-500 text-sm text-white">{{ old('description') }}</textarea>
+                <div class="flex justify-between items-center mt-1">
+                    <p class="text-[10px] text-brand-light/40 uppercase tracking-widest font-bold italic">Maksimal 500 karakter</p>
+                    <p class="text-[10px] text-brand-light/60 font-bold"><span id="violation-char-count">0</span> / 500</p>
+                </div>
                 @error('description') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
             </div>
 

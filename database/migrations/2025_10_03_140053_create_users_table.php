@@ -18,13 +18,17 @@ return new class extends Migration
                 $table->string('email',191)->unique();
                 $table->string('password',191);
                 $table->enum('role',['student','parent','wali_kelas','guru_bk','admin'])->default('student');
+                $table->boolean('is_approved')->default(true);
                 $table->string('nis',50)->nullable();
                 $table->string('nip',50)->nullable();
                 $table->string('phone',30)->nullable();
                 $table->text('address')->nullable();
                 $table->string('relationship_to_student',100)->nullable();
                 $table->unsignedBigInteger('class_id')->nullable(); // FK ditambahkan di migration tambahan
+                $table->string('absen', 10)->nullable();
+                $table->string('nisn', 20)->nullable();
                 $table->string('specialization',191)->nullable();
+                $table->integer('points')->nullable()->default(null);
 
                 // Kolom tambahan untuk Laravel Auth kompatibel seeder
                 $table->timestamp('email_verified_at')->nullable();

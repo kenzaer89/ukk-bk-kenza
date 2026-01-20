@@ -46,14 +46,6 @@
                                 </svg>
                                 {{ $user->email }}
                             </div>
-                            @if($user->phone)
-                            <div class="flex items-center gap-2">
-                                <svg class="w-4 h-4 text-brand-teal/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-                                </svg>
-                                {{ $user->phone }}
-                            </div>
-                            @endif
                         </div>
 
                         <!-- Role specific quick chips -->
@@ -99,6 +91,20 @@
                                 <input type="email" name="email" value="{{ old('email', $user->email) }}" required readonly
                                        class="w-full bg-brand-dark/30 border border-white/10 rounded-2xl px-5 py-4 text-white transition-all outline-none font-medium placeholder-gray-600 opacity-70 cursor-not-allowed">
                             </div>
+
+                            @if($user->role === 'student')
+                            <div class="space-y-1.5">
+                                <label class="block text-xs font-black text-gray-500 uppercase tracking-widest pl-1">Nomor Telepon</label>
+                                <input type="text" value="{{ $user->phone ?? '-' }}" readonly
+                                       class="w-full bg-brand-dark/30 border border-white/10 rounded-2xl px-5 py-4 text-white transition-all outline-none font-medium placeholder-gray-600 opacity-70 cursor-not-allowed">
+                            </div>
+
+                            <div class="space-y-1.5">
+                                <label class="block text-xs font-black text-gray-500 uppercase tracking-widest pl-1">NISN</label>
+                                <input type="text" value="{{ $user->nisn ?? '-' }}" readonly
+                                       class="w-full bg-brand-dark/30 border border-white/10 rounded-2xl px-5 py-4 text-white transition-all outline-none font-medium placeholder-gray-600 opacity-70 cursor-not-allowed">
+                            </div>
+                            @endif
                         </div>
                     </div>
 

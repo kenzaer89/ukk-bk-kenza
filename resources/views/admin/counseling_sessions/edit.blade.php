@@ -76,10 +76,15 @@
                 <h3 class="text-xl font-bold text-green-400 mb-3 border-b border-gray-700 pb-2">Catatan Hasil Sesi</h3>
 
                 <div>
-                    <label for="notes" class="block text-sm font-medium text-gray-300 mb-2">Catatan / Hasil Tindakan Konseling</label>
-                    <textarea name="notes" id="notes" rows="6"
+                    <label for="notes" id="notes-label" class="block text-sm font-medium text-gray-300 mb-2">Catatan / Hasil Tindakan Konseling</label>
+                    <textarea name="notes" id="notes" rows="6" maxlength="500"
+                              oninput="document.getElementById('edit-char-count').innerText = this.value.length;"
                               placeholder="Contoh: Siswa menunjukkan hambatan X. Diberikan teknik Z. Perlu monitoring 1 minggu ke depan."
                               class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white">{{ old('notes', $session->notes) }}</textarea>
+                    <div class="flex justify-between items-center mt-1">
+                        <p class="text-[10px] text-brand-light/40 uppercase tracking-widest font-bold italic">Maksimal 500 karakter</p>
+                        <p class="text-[10px] text-brand-light/60 font-bold"><span id="edit-char-count">{{ strlen($session->notes ?? '') }}</span> / 500</p>
+                    </div>
                     @error('notes') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
                 </div>
                 
@@ -168,8 +173,21 @@
         const statusSelect = document.getElementById('status');
         const submitButton = document.getElementById('submit-button');
 
+        const notesLabel = document.getElementById('notes-label');
+        const notesTextarea = document.getElementById('notes');
+
         function toggleSubmitButton() {
             if (!statusSelect || !submitButton) return;
+
+            // Toggle label and placeholder
+            if (statusSelect.value === 'cancelled') {
+                if (notesLabel) notesLabel.innerHTML = 'Alasan Dibatalkan <span class="text-red-500">*</span>';
+                if (notesTextarea) notesTextarea.placeholder = 'Masukkan alasan pembatalan sesi...';
+            } else {
+                if (notesLabel) notesLabel.innerHTML = 'Catatan / Hasil Tindakan Konseling';
+                if (notesTextarea) notesTextarea.placeholder = 'Contoh: Siswa menunjukkan hambatan X. Diberikan teknik Z. Perlu monitoring 1 minggu ke depan.';
+            }
+
             if (statusSelect.value === 'scheduled') {
                 submitButton.style.display = 'none';
             } else {

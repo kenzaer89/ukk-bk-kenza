@@ -86,10 +86,14 @@
                         name="reason" 
                         rows="6" 
                         required
+                        maxlength="500"
                         class="w-full px-4 py-3 bg-brand-dark/50 border border-brand-light/10 rounded-xl text-brand-light placeholder-brand-light/40 focus:outline-none focus:border-brand-teal/50 focus:ring-2 focus:ring-brand-teal/20 transition-all font-medium"
                         placeholder="Jelaskan alasan Anda membutuhkan konseling..."
                     >{{ old('reason') }}</textarea>
-                    <p class="mt-2 text-[10px] text-brand-light/40 uppercase tracking-widest font-bold">Maksimal 500 karakter</p>
+                    <p class="mt-2 text-[10px] text-brand-light/40 uppercase tracking-widest font-bold flex justify-between">
+                        <span>Maksimal 500 karakter</span>
+                        <span id="reason-counter">0/500</span>
+                    </p>
                 </div>
 
                 <!-- Info Box -->
@@ -154,6 +158,21 @@
 
         // Run on change
         topicSelect.addEventListener('change', toggleCustomTopic);
+
+        // Reason Character Counter
+        const reasonInput = document.getElementById('reason');
+        const reasonCounter = document.getElementById('reason-counter');
+        
+        if (reasonInput && reasonCounter) {
+            function updateCounter() {
+                const count = reasonInput.value.length;
+                reasonCounter.textContent = `${count}/500`;
+            }
+            
+            reasonInput.addEventListener('input', updateCounter);
+            // Initialize
+            updateCounter();
+        }
     });
 </script>
 @endpush

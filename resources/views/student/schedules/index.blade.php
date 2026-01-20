@@ -245,7 +245,7 @@
                     <!-- Counseling Notes (If session exists) -->
                     @if($schedule->session && $schedule->session->notes)
                     <div>
-                        <span class="text-[10px] text-brand-light/40 uppercase font-bold tracking-widest block mb-2">Catatan Konseling</span>
+                        <span class="text-[10px] text-brand-light/40 uppercase font-bold tracking-widest block mb-2">{{ $currentStatus == 'cancelled' ? 'Alasan Dibatalkan' : 'Catatan Konseling' }}</span>
                         <div class="p-4 bg-brand-light/5 border border-brand-light/5 rounded-xl max-h-[200px] overflow-y-auto">
                             <p class="text-brand-light/90 italic leading-relaxed break-words whitespace-pre-wrap">"{{ $schedule->session->notes }}"</p>
                         </div>

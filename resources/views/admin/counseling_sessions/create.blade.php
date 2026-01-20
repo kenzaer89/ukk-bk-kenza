@@ -196,12 +196,16 @@
                 @endif
 
                 <div>
-                    <label for="notes" class="block text-sm font-medium text-gray-300 mb-2">Catatan / Hasil Konseling <span class="text-red-500">*</span></label>
-                    <textarea name="notes" id="notes" rows="4" required
+                    <label for="notes" id="notes-label" class="block text-sm font-medium text-gray-300 mb-2">Catatan / Hasil Konseling <span class="text-red-500">*</span></label>
+                    <textarea name="notes" id="notes" rows="4" required maxlength="500"
                               oninvalid="this.setCustomValidity('Harap isi catatan hasil konseling')"
-                              oninput="this.setCustomValidity('')"
+                              oninput="this.setCustomValidity(''); document.getElementById('char-count').innerText = this.value.length;"
                               placeholder="Catatan hasil sesi konseling..."
                               class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white">{{ old('notes') }}</textarea>
+                    <div class="flex justify-between items-center mt-1">
+                        <p class="text-[10px] text-brand-light/40 uppercase tracking-widest font-bold italic">Maksimal 500 karakter</p>
+                        <p class="text-[10px] text-brand-light/60 font-bold"><span id="char-count">0</span> / 500</p>
+                    </div>
                     @error('notes') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
                 </div>
                 
@@ -261,8 +265,21 @@
         const statusSelect = document.getElementById('status');
         const submitButton = document.getElementById('submit-button');
 
+        const notesLabel = document.getElementById('notes-label');
+        const notesTextarea = document.getElementById('notes');
+
         function toggleSubmitButton() {
             if (!statusSelect || !submitButton) return;
+            
+            // Toggle label and placeholder
+            if (statusSelect.value === 'cancelled') {
+                if (notesLabel) notesLabel.innerHTML = 'Alasan Dibatalkan <span class="text-red-500">*</span>';
+                if (notesTextarea) notesTextarea.placeholder = 'Masukkan alasan pembatalan sesi...';
+            } else {
+                if (notesLabel) notesLabel.innerHTML = 'Catatan / Hasil Konseling <span class="text-red-500">*</span>';
+                if (notesTextarea) notesTextarea.placeholder = 'Catatan hasil sesi konseling...';
+            }
+
             if (statusSelect.value === 'scheduled') {
                 submitButton.style.display = 'none';
             } else {
