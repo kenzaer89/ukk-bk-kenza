@@ -238,10 +238,16 @@
                             <label class="block text-sm font-medium text-brand-light mb-2">Guru Yang Menangani</label>
                             <input type="text" name="teacher_name" 
                                    id="teacher_name"
+                                   list="teacher_list"
                                    placeholder="Ketik nama guru..." 
                                    autocomplete="off"
                                    required
                                    class="w-full px-4 py-2 bg-brand-dark border border-brand-light/10 rounded-lg text-brand-light focus:border-brand-teal focus:ring-1 focus:ring-brand-teal transition-all">
+                            <datalist id="teacher_list">
+                                @foreach($teachers as $teacher)
+                                    <option value="{{ $teacher->name }}">{{ $teacher->role_display_name }}</option>
+                                @endforeach
+                            </datalist>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-brand-light mb-2">Tanggal Konseling</label>
@@ -385,7 +391,10 @@
                     body: JSON.stringify({
                         date: date,
                         start_time: startTime,
-                        end_time: endTime
+                        end_time: endTime,
+                        teacher_name: approveForm.querySelector('input[name="teacher_name"]').value,
+                        location: location,
+                        student_id: studentId
                     })
                 })
                     .then(response => response.json())
@@ -396,26 +405,48 @@
                             submitBtn.innerHTML = originalText;
 
                             const details = data.details;
+                            let conflictHtml = '';
+                            
+                            details.forEach((item, index) => {
+                                conflictHtml += `
+                                    <div style="background: rgba(245, 158, 11, 0.1); border-left: 4px solid #F59E0B; padding: 1rem; border-radius: 0.75rem; margin-bottom: 1rem; border: 1px solid rgba(245, 158, 11, 0.2);">
+                                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                                            <span style="color: #F59E0B; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Bentrok #${index + 1}: ${item.conflict_type}</span>
+                                            <span style="color: #f8fafc; font-weight: 700; font-size: 0.85rem; background: rgba(245, 158, 11, 0.2); padding: 0.25rem 0.5rem; rounded: 0.375rem;">${item.time_range} WIB</span>
+                                        </div>
+                                        <div style="grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.85rem;">
+                                            <p style="margin: 0; color: #f8fafc;"><span style="color: #94a3b8;">Siswa:</span> ${item.student_name} (${item.class_name})</p>
+                                            <p style="margin: 0.25rem 0 0 0; color: #f8fafc;"><span style="color: #94a3b8;">Guru:</span> ${item.teacher_name}</p>
+                                            <p style="margin: 0.25rem 0 0 0; color: #f8fafc;"><span style="color: #94a3b8;">Lokasi:</span> ${item.location}</p>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+
                             Swal.fire({
                                 title: '⚠️ Jadwal Bentrok!',
                                 html: `
-                                    <div style="text-align: left; padding: 1rem;">
-                                        <div style="background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%); border-left: 4px solid #F59E0B; padding: 1rem; border-radius: 0.75rem; margin-bottom: 1rem;">
-                                            <p style="margin: 0; color: #92400E; font-weight: 600; font-size: 0.95rem; line-height: 1.6;">
-                                                Jadwal bertabrakan dengan <strong>${details.student_name}</strong> (${details.class_name}) pada <strong>${details.time_range} WIB</strong>.
-                                            </p>
+                                    <div style="text-align: left; padding: 0.5rem;">
+                                        <p style="color: #f8fafc; font-size: 0.95rem; margin-bottom: 1.25rem; opacity: 0.8;">
+                                            Ditemukan <strong>${data.count}</strong> jadwal yang bertabrakan dengan waktu yang Anda pilih:
+                                        </p>
+                                        
+                                        <div style="max-height: 300px; overflow-y: auto; padding-right: 0.5rem; margin-bottom: 1.5rem;">
+                                            ${conflictHtml}
                                         </div>
-                                        <div style="background: rgba(255, 255, 255, 0.05); padding: 1rem; border-radius: 0.75rem; border: 1px solid rgba(255, 255, 255, 0.1);">
+
+                                        <div style="background: rgba(255, 255, 255, 0.05); padding: 1rem; border-radius: 0.75rem; border: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 1.5rem;">
                                             <p style="margin: 0 0 0.5rem 0; color: #94a3b8; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700;">
-                                                ⏰ Waktu yang dipilih
+                                                ⏰ Waktu yang Anda Pilih
                                             </p>
-                                            <p style="margin: 0; color: #f8fafc; font-size: 1.1rem; font-weight: 600;">
+                                            <p style="margin: 0; color: #2dd4bf; font-size: 1.1rem; font-weight: 700;">
                                                 ${startTime} - ${endTime} WIB
                                             </p>
                                         </div>
-                                        <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(45, 212, 191, 0.1); border-radius: 0.75rem; border: 1px solid rgba(45, 212, 191, 0.2);">
-                                            <p style="margin: 0; color: #2dd4bf; font-size: 0.9rem; font-weight: 500; line-height: 1.6;">
-                                                💡 <strong>Tips:</strong> Silakan ubah waktu konseling, atau klik <strong>"Lanjutkan"</strong> jika Anda yakin ingin tetap menyetujui permintaan ini meskipun bentrok dengan jadwal lain.
+
+                                        <div style="padding: 1rem; background: rgba(45, 212, 191, 0.1); border-radius: 0.75rem; border: 1px solid rgba(45, 212, 191, 0.2);">
+                                            <p style="margin: 0; color: #2dd4bf; font-size: 0.85rem; font-weight: 500; line-height: 1.5;">
+                                                💡 <strong>Tips:</strong> Silakan pilih waktu lain, atau klik <strong>"Lanjutkan"</strong> jika Anda yakin ingin membuat jadwal ini meskipun bertabrakan.
                                             </p>
                                         </div>
                                     </div>

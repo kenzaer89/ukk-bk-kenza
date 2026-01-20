@@ -50,10 +50,9 @@ Route::post('/login', [LoginController::class, 'login'])
 Route::post('/logout', [LoginController::class, 'logout'])
     ->name('logout');
 
+// 🧭 DASHBOARD DAN FITUR PER ROLE (Membutuhkan user terautentikasi dan terverifikasi OTP)
 // =====================================================================
-// 🧭 DASHBOARD DAN FITUR PER ROLE (Membutuhkan user terautentikasi)
-// =====================================================================
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
 
     // --- ADMIN & GURU BK ---
     // Akses ke fitur administrasi dan pengelolaan data master

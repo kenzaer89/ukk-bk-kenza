@@ -86,20 +86,18 @@ class CounselingRequestController extends Controller
         
         // Tracking who approved it (current admin/guru bk)
         $approverId = Auth::id();
-        $scheduledDate = $request->filled('scheduled_date') ? $request->scheduled_date : now()->toDateString();
 
-        // Check for conflicts - ONLY check against other request-based schedules (whereNotNull counseling_request_id)
+        // Check for conflicts - check against ALL schedules
         $conflict = CounselingSchedule::where('scheduled_date', $scheduledDate)
-            ->whereNotNull('counseling_request_id')
             ->whereIn('status', ['scheduled', 'completed'])
             ->where(function($query) use ($request) {
                 $query->where('start_time', '<', $request->end_time)
                       ->where('end_time', '>', $request->start_time);
             })
-            ->where(function($query) use ($request, $teacherName) {
+            ->where(function($query) use ($request, $teacherName, $counseling_request) {
                 // Group identity checks
-                $query->where(function($q) use ($request, $teacherName) {
-                    $q->where('student_id', $request->student_id)
+                $query->where(function($q) use ($request, $teacherName, $counseling_request) {
+                    $q->where('student_id', $counseling_request->student_id)
                       ->orWhere('teacher_id', Auth::id())
                       ->orWhere('teacher_name', $teacherName)
                       ->orWhere(function($sq) use ($request) {
@@ -111,20 +109,19 @@ class CounselingRequestController extends Controller
             ->first();
 
         if ($conflict && !$request->has('ignore_conflict')) {
-            $conflictDetail = '';
-            if ($conflict->student_id) {
-                $className = $conflict->student->schoolClass->name ?? '';
-                $conflictDetail = "{$conflict->student->name} (" . ($className ?: '-') . ")";
+            $conflictType = '';
+            if ($conflict->student_id == $counseling_request->student_id) {
+                $conflictType = "Siswa " . $conflict->student->name;
             } elseif ($conflict->teacher_id == Auth::id() || $conflict->teacher_name == $teacherName) {
-                $conflictDetail = "Guru BK ({$teacherName})";
+                $conflictType = "Guru BK (" . $teacherName . ")";
             } else {
-                $conflictDetail = "Lokasi " . $conflict->location;
+                $conflictType = "Lokasi " . $conflict->location;
             }
 
             $conflictTime = substr($conflict->start_time, 0, 5) . ' - ' . substr($conflict->end_time, 0, 5);
             return redirect()->back()
                 ->withInput()
-                ->with('error', "Jadwal bertabrakan dengan {$conflictDetail} pada jam {$conflictTime} WIB.");
+                ->with('error', "Jadwal Bertabrakan! {$conflictType} sudah memiliki agenda pada pukul {$conflictTime} WIB. Silakan pilih waktu atau lokasi lain.");
         }
 
         try {
@@ -276,29 +273,60 @@ class CounselingRequestController extends Controller
         $end_time = $request->end_time ?? $request->query('end_time');
         $date = $request->date ?? $request->query('date', now()->toDateString());
 
-        // Admin is approving a request, check against actual schedules that also came from requests
-        $conflict = CounselingSchedule::with(['student.schoolClass'])
-            ->whereNotNull('counseling_request_id')
+        $teacherName = $request->teacher_name;
+        $location = $request->location;
+        $studentId = $request->student_id;
+
+        // Admin is approving a request, check against ALL actual schedules
+        $conflicts = CounselingSchedule::with(['student.schoolClass', 'teacher'])
             ->where('scheduled_date', $date)
             ->whereIn('status', ['scheduled', 'completed'])
             ->where(function($query) use ($start_time, $end_time) {
                 $query->where('start_time', '<', $end_time)
                       ->where('end_time', '>', $start_time);
             })
-            ->first();
+            ->where(function($query) use ($studentId, $teacherName, $location) {
+                $query->where('student_id', $studentId)
+                      ->orWhere('teacher_id', Auth::id())
+                      ->orWhere('teacher_name', $teacherName)
+                      ->orWhere(function($sq) use ($location) {
+                          if ($location) {
+                              $sq->whereRaw('LOWER(location) = ?', [strtolower($location)]);
+                          } else {
+                              $sq->where('id', 0); // null location in request shouldn't conflict with any location
+                          }
+                      });
+            })
+            ->get();
                 
-        if ($conflict) {
-            return response()->json([
-                'conflict' => true,
-                'details' => [
+        if ($conflicts->count() > 0) {
+            $conflictDetails = $conflicts->map(function($conflict) use ($studentId, $teacherName) {
+                $conflictType = '';
+                if ($conflict->student_id == $studentId) {
+                    $conflictType = "Siswa (" . $conflict->student->name . ")";
+                } elseif ($conflict->teacher_id == Auth::id() || $conflict->teacher_name == $teacherName) {
+                    $conflictType = "Guru BK (" . ($conflict->teacher->name ?? $conflict->teacher_name) . ")";
+                } else {
+                    $conflictType = "Lokasi (" . $conflict->location . ")";
+                }
+
+                return [
                     'student_name' => $conflict->student->name,
                     'class_name' => $conflict->student->schoolClass->name ?? '-',
                     'time_range' => \Carbon\Carbon::parse($conflict->start_time)->format('H:i') . ' - ' . \Carbon\Carbon::parse($conflict->end_time)->format('H:i'),
-                    'location' => $conflict->location
-                ],
-                'schedule_url' => $conflict->counseling_request_id 
-                    ? route('admin.counseling_requests.show', $conflict->counseling_request_id) 
-                    : route('admin.schedules.edit', $conflict->id)
+                    'location' => $conflict->location,
+                    'teacher_name' => $conflict->teacher_name ?? ($conflict->teacher->name ?? 'Guru BK'),
+                    'conflict_type' => $conflictType,
+                    'schedule_url' => $conflict->counseling_request_id 
+                        ? route('admin.counseling_requests.show', $conflict->counseling_request_id) 
+                        : route('admin.schedules.edit', $conflict->id)
+                ];
+            });
+
+            return response()->json([
+                'conflict' => true,
+                'count' => $conflicts->count(),
+                'details' => $conflictDetails
             ]);
         }
             

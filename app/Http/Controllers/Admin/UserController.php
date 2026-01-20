@@ -207,7 +207,6 @@ class UserController extends Controller
             $rules['nip'] = 'nullable';
             $rules['class_id'] = 'nullable';
         } elseif ($request->role == 'parent') {
-            $rules['relationship_to_student'] = 'required|string|max:100';
             $rules['student_ids'] = 'required|array';
             $rules['student_ids.*'] = 'exists:users,id,role,student';
             $rules['nis'] = 'nullable';

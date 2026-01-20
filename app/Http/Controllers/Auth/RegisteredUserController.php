@@ -39,7 +39,7 @@ class RegisteredUserController extends Controller
             'email' => ['required', 'string', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'role' => ['required', 'string', 'in:student,parent,wali_kelas'],
-            'phone' => ['required', 'string', 'max:30'],
+            'phone' => ['required', 'string', 'max:20', 'regex:/^[0-9]+$/'],
             'nip' => ['nullable', 'required_if:role,wali_kelas', 'string', 'max:50'],
             'nisn' => ['nullable', 'required_if:role,student', 'string', 'size:10'],
             'class_id' => ['nullable', 'required_if:role,student', 'exists:classes,id'],
@@ -81,8 +81,20 @@ class RegisteredUserController extends Controller
             }
         }
 
+        // Generate and send OTP
+        $otp = sprintf("%06d", mt_rand(1, 999999));
+        $user->otp_code = $otp;
+        $user->otp_expires_at = \Carbon\Carbon::now()->addMinutes(10);
+        $user->save();
+
+        try {
+            \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\OtpMail($otp));
+        } catch (\Exception $e) {
+            // Log error or handle gracefully
+        }
+
         Auth::login($user);
 
-        return redirect(route('home', absolute: false));
+        return redirect()->route('otp.verify');
     }
 }

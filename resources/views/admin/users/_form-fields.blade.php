@@ -136,14 +136,6 @@
     <div id="parent-fields" class="space-y-6 hidden border p-4 rounded-lg border-green-700 bg-green-900/20">
         <h3 class="text-lg font-bold text-green-300">Detail Orang Tua</h3>
 
-        <div>
-            <label for="relationship_to_student" class="block text-sm font-medium text-gray-300 mb-2">Hubungan dengan Siswa</label>
-            <input type="text" name="relationship_to_student" id="relationship_to_student" 
-                   value="{{ old('relationship_to_student', $user->relationship_to_student ?? '') }}"
-                   placeholder="Contoh: Ayah Kandung, Ibu Tiri"
-                   class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-brand-teal">
-            @error('relationship_to_student') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
-        </div>
         
         <div>
             <label for="student_ids" class="block text-sm font-medium text-gray-300 mb-2">Siswa yang Diwakili (Pilih satu atau lebih)</label>

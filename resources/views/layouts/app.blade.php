@@ -272,6 +272,11 @@
         ::-webkit-scrollbar-thumb:hover {
             background: rgba(148, 163, 184, 0.4); 
         }
+
+        /* Hide datalist dropdown arrow */
+        input::-webkit-calendar-picker-indicator {
+            display: none !important;
+        }
     </style>
 </head>
 <body>

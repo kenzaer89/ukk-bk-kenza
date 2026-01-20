@@ -214,18 +214,36 @@
 
             <div class="p-8 space-y-8 max-h-[70vh] overflow-y-auto">
                 {{-- Data Utama --}}
-                <div class="grid grid-cols-2 gap-8">
+                <div class="grid grid-cols-2 gap-x-8 gap-y-6">
                     <div class="col-span-2">
                         <label class="text-[9px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Nama Lengkap</label>
                         <p class="text-xl font-bold text-white tracking-tight" x-text="selectedUser?.name"></p>
                     </div>
-                    <div>
-                        <label class="text-[9px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Alamat Email</label>
-                        <p class="text-brand-teal font-medium" x-text="selectedUser?.email"></p>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-[9px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Alamat Email</label>
+                            <p class="text-brand-teal font-medium" x-text="selectedUser?.email"></p>
+                        </div>
+                        <template x-if="selectedUser?.role === 'student'">
+                            <div class="animate-fade-in">
+                                <label class="text-[9px] font-bold text-gray-500 uppercase tracking-widest block mb-1">NISN (NOMOR INDUK SISWA NASIONAL)</label>
+                                <p class="text-brand-teal text-lg font-bold" x-text="selectedUser?.nisn"></p>
+                            </div>
+                        </template>
                     </div>
-                    <div>
-                        <label class="text-[9px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Nomor Telepon</label>
-                        <p class="text-white font-medium" x-text="selectedUser?.phone"></p>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-[9px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Nomor Telepon</label>
+                            <p class="text-white font-medium" x-text="selectedUser?.phone"></p>
+                        </div>
+                        <template x-if="selectedUser?.role === 'student'">
+                            <div class="animate-fade-in">
+                                <label class="text-[9px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Kelas</label>
+                                <p class="text-white text-lg font-bold" x-text="selectedUser?.class"></p>
+                            </div>
+                        </template>
                     </div>
                 </div>
 
@@ -234,29 +252,18 @@
                 {{-- Role-specific data --}}
                 <div class="space-y-6">
                     <template x-if="selectedUser?.role === 'student'">
-                        <div class="space-y-4">
-                            <!-- NISN - Full Width -->
-                            <div class="bg-brand-teal/10 p-5 rounded-2xl border border-brand-teal/20">
-                                <label class="text-[9px] font-bold text-brand-teal uppercase tracking-widest block mb-1">NISN (Nomor Induk Siswa Nasional)</label>
-                                <p class="text-2xl font-black text-brand-teal" x-text="selectedUser?.nisn"></p>
-                            </div>
-                            
-                            <!-- Grid Info -->
-                            <div class="bg-white/5 p-4 rounded-2xl border border-white/5">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-white/5 p-5 rounded-2xl border border-white/5">
                                 <label class="text-[9px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Nomor Absen</label>
                                 <p class="text-2xl font-black text-white" x-text="selectedUser?.absen"></p>
                             </div>
-                            <div class="bg-white/5 p-4 rounded-2xl border border-white/5">
+                            <div class="bg-white/5 p-5 rounded-2xl border border-white/5">
                                 <label class="text-[9px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Poin Kredit</label>
                                 <p class="text-2xl font-black text-brand-teal" x-text="selectedUser?.points"></p>
                             </div>
-                            <div class="bg-white/5 p-4 rounded-2xl border border-white/5">
-                                <label class="text-[9px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Kelas</label>
-                                <p class="text-lg font-bold text-white" x-text="selectedUser?.class"></p>
-                            </div>
-                            <div class="bg-white/5 p-4 rounded-2xl border border-white/5">
+                            <div class="col-span-2 bg-white/5 p-5 rounded-2xl border border-white/5">
                                 <label class="text-[9px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Jurusan</label>
-                                <p class="text-sm font-bold text-white leading-tight" x-text="selectedUser?.jurusan"></p>
+                                <p class="text-lg font-bold text-white leading-tight" x-text="selectedUser?.jurusan"></p>
                             </div>
                         </div>
                     </template>

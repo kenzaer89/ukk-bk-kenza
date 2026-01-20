@@ -121,9 +121,8 @@ class ScheduleController extends Controller
             $topicId = $request->topic_id;
         }
 
-        // Check for conflicts - ONLY check against other manual schedules (whereNull counseling_request_id)
+        // Check for conflicts - check against ALL schedules
         $conflict = CounselingSchedule::where('scheduled_date', $request->scheduled_date)
-            ->whereNull('counseling_request_id')
             ->whereIn('status', ['scheduled', 'completed'])
             ->where(function($query) use ($request) {
                 $query->where('start_time', '<', $request->end_time)
@@ -246,9 +245,8 @@ class ScheduleController extends Controller
             $topicId = $request->topic_id;
         }
 
-        // Check for conflicts - ONLY check against other manual schedules
+        // Check for conflicts - check against ALL schedules
         $conflict = CounselingSchedule::where('scheduled_date', $request->scheduled_date)
-            ->whereNull('counseling_request_id')
             ->whereIn('status', ['scheduled', 'completed'])
             ->where('id', '!=', $schedule->id)
             ->where(function($query) use ($request) {
@@ -268,7 +266,7 @@ class ScheduleController extends Controller
             })
             ->first();
 
-        if ($conflict) {
+        if ($conflict && !$request->has('ignore_conflict')) {
             $conflictType = '';
             if ($conflict->student_id == $request->student_id) $conflictType = "Siswa " . $conflict->student->name;
             elseif ($conflict->teacher_id == Auth::id() || $conflict->teacher_name == $request->teacher_name) $conflictType = "Guru BK (" . $request->teacher_name . ")";
@@ -336,28 +334,62 @@ class ScheduleController extends Controller
         $endTime = $request->end_time;
         $excludeId = $request->id; // Untuk mode edit
 
-        // Cari jadwal yang overlap waktu
-        $conflict = CounselingSchedule::with(['student.schoolClass'])
+        $studentId = $request->student_id;
+        $teacherName = $request->teacher_name;
+        $location = $request->location;
+
+        // Cari jadwal yang overlap waktu (cek SEMUA jadwal)
+        $conflicts = CounselingSchedule::with(['student.schoolClass', 'teacher'])
             ->where('scheduled_date', $date)
-            ->whereNull('counseling_request_id') // Hanya cek jadwal manual
             ->whereIn('status', ['scheduled', 'completed'])
             ->where(function($query) use ($startTime, $endTime) {
                 $query->where('start_time', '<', $endTime)
                       ->where('end_time', '>', $startTime);
             })
+            ->where(function($query) use ($studentId, $teacherName, $location) {
+                $query->where(function($q) use ($studentId, $teacherName, $location) {
+                    $q->where('student_id', $studentId)
+                      ->orWhere('teacher_id', Auth::id())
+                      ->orWhere('teacher_name', $teacherName)
+                      ->orWhere(function($sq) use ($location) {
+                          if ($location) {
+                              $sq->whereRaw('LOWER(location) = ?', [strtolower($location)]);
+                          } else {
+                              $sq->where('id', 0);
+                          }
+                      });
+                });
+            })
             ->when($excludeId, function($query) use ($excludeId) {
                 $query->where('id', '!=', $excludeId);
             })
-            ->first();
+            ->get();
+                
+        if ($conflicts->count() > 0) {
+            $conflictDetails = $conflicts->map(function($conflict) use ($studentId, $teacherName) {
+                $conflictType = '';
+                if ($conflict->student_id == $studentId) {
+                    $conflictType = "Siswa (" . ($conflict->student->name ?? 'Siswa') . ")";
+                } elseif ($conflict->teacher_id == Auth::id() || $conflict->teacher_name == $teacherName) {
+                    $conflictType = "Guru BK (" . ($conflict->teacher->name ?? $conflict->teacher_name) . ")";
+                } else {
+                    $conflictType = "Lokasi (" . $conflict->location . ")";
+                }
 
-        if ($conflict) {
-            $studentName = $conflict->student->name ?? 'Siswa';
-            $className = $conflict->student->schoolClass->name ?? '-';
-            $conflictTime = substr($conflict->start_time, 0, 5) . ' - ' . substr($conflict->end_time, 0, 5);
-            
+                return [
+                    'student_name' => $conflict->student->name ?? 'Siswa',
+                    'class_name' => $conflict->student->schoolClass->name ?? '-',
+                    'time_range' => \Carbon\Carbon::parse($conflict->start_time)->format('H:i') . ' - ' . \Carbon\Carbon::parse($conflict->end_time)->format('H:i'),
+                    'location' => $conflict->location,
+                    'teacher_name' => $conflict->teacher_name ?? ($conflict->teacher->name ?? 'Guru BK'),
+                    'conflict_type' => $conflictType
+                ];
+            });
+
             return response()->json([
                 'conflict' => true,
-                'message' => "Jadwal bertabrakan dengan {$studentName} ({$className}) pada {$conflictTime} WIB."
+                'count' => $conflicts->count(),
+                'details' => $conflictDetails
             ]);
         }
 

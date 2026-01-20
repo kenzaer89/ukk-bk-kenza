@@ -82,14 +82,17 @@
                     <div>
                         <label for="phone" class="block text-brand-light font-medium mb-2">Nomor Telepon</label>
                         <input 
-                            type="tel" 
+                            type="text" 
                             id="phone" 
                             name="phone" 
                             value="{{ old('phone') }}" 
                             required
+                            inputmode="numeric"
+                            oninput="this.value = this.value.replace(/[^0-9]/g, '');"
                             class="w-full px-4 py-3 bg-brand-dark border border-brand-light/10 rounded-lg text-brand-light placeholder-brand-light/40 focus:outline-none focus:border-brand-teal/50 focus:ring-2 focus:ring-brand-teal/20 transition-all"
                             placeholder="Contoh: 081234567890"
                         >
+                        <p class="mt-1 text-[10px] text-brand-light/40 italic">Hanya masukkan angka tanpa spasi atau karakter lain.</p>
                         @error('phone')
                             <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                         @enderror
@@ -190,14 +193,6 @@
                         @enderror
                     </div>
 
-                    <div id="general-warning-msg" class="hidden p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg flex items-start gap-3 animate-fade-in-up">
-                        <svg class="w-5 h-5 text-yellow-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                        </svg>
-                        <p class="text-sm text-yellow-200/90 leading-tight">
-                            Pastikan anda mengisi semua data dengan benar sebelum mendaftar.
-                        </p>
-                    </div>
 
                     <!-- Student Specific Fields -->
                     <div id="student-fields" class="space-y-5 hidden">
@@ -403,6 +398,15 @@
                             });
                         });
                     </script>
+
+                    <div id="general-warning-msg" class="hidden mb-5 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg flex items-start gap-3 animate-fade-in-up">
+                        <svg class="w-5 h-5 text-yellow-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                        <p class="text-sm text-yellow-200/90 leading-tight">
+                            Pastikan anda mengisi semua data dengan benar sebelum mendaftar.
+                        </p>
+                    </div>
 
                     <!-- Submit Button -->
                     <button 

@@ -20,3 +20,8 @@ input::-webkit-credentials-auto-fill-button {
   position: absolute;
   right: 0;
 }
+
+/* Hide datalist dropdown arrow */
+input::-webkit-calendar-picker-indicator {
+    display: none !important;
+}

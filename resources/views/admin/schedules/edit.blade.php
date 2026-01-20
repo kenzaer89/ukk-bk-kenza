@@ -37,10 +37,16 @@
             <div>
                 <label for="teacher_name" class="block text-sm font-medium text-gray-300 mb-2">Guru BK Penanggung Jawab <span class="text-red-500">*</span></label>
                 <input type="text" name="teacher_name" id="teacher_name" 
+                       list="teacher_list"
                        value="{{ old('teacher_name', $schedule->teacher_name ?? $schedule->teacher->name) }}" 
                        placeholder="Ketik nama guru penanggung jawab..." 
                        required
                        class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-sm text-white">
+                <datalist id="teacher_list">
+                    @foreach($teachers as $teacher)
+                        <option value="{{ $teacher->name }}">{{ $teacher->role_display_name }}</option>
+                    @endforeach
+                </datalist>
                 @error('teacher_name') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
             </div>
 
@@ -210,6 +216,16 @@
             if (form.dataset.confirmed !== 'true') {
                 e.preventDefault();
                 
+                const requestData = {
+                    id: "{{ $schedule->id }}",
+                    scheduled_date: document.getElementById('scheduled_date').value,
+                    start_time: startTimeInput.value,
+                    end_time: endTimeInput.value,
+                    student_id: document.getElementById('student_id').value,
+                    teacher_name: document.getElementById('teacher_name').value,
+                    location: document.getElementById('location').value,
+                };
+
                 try {
                     const response = await fetch("{{ route('admin.schedules.check_conflict') }}", {
                         method: 'POST',
@@ -217,26 +233,84 @@
                             'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': '{{ csrf_token() }}'
                         },
-                        body: JSON.stringify({
-                            id: "{{ $schedule->id }}",
-                            scheduled_date: document.getElementById('scheduled_date').value,
-                            start_time: startTimeInput.value,
-                            end_time: endTimeInput.value,
-                            student_id: document.getElementById('student_id').value,
-                            teacher_name: document.getElementById('teacher_name').value,
-                            location: document.getElementById('location').value,
-                        })
+                        body: JSON.stringify(requestData)
                     });
                     
                     const data = await response.json();
                     
                     if (data.conflict) {
+                        const details = data.details;
+                        let conflictHtml = '';
+                        
+                        details.forEach((item, index) => {
+                            conflictHtml += `
+                                <div style="background: rgba(245, 158, 11, 0.1); border-left: 4px solid #F59E0B; padding: 1rem; border-radius: 0.75rem; margin-bottom: 1rem; border: 1px solid rgba(245, 158, 11, 0.2);">
+                                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                                        <span style="color: #F59E0B; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Bentrok #${index + 1}: ${item.conflict_type}</span>
+                                        <span style="color: #f8fafc; font-weight: 700; font-size: 0.85rem; background: rgba(245, 158, 11, 0.2); padding: 0.25rem 0.5rem; rounded: 0.375rem;">${item.time_range} WIB</span>
+                                    </div>
+                                    <div style="grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.85rem;">
+                                        <p style="margin: 0; color: #f8fafc;"><span style="color: #94a3b8;">Siswa:</span> ${item.student_name} (${item.class_name})</p>
+                                        <p style="margin: 0.25rem 0 0 0; color: #f8fafc;"><span style="color: #94a3b8;">Guru:</span> ${item.teacher_name}</p>
+                                        <p style="margin: 0.25rem 0 0 0; color: #f8fafc;"><span style="color: #94a3b8;">Lokasi:</span> ${item.location}</p>
+                                    </div>
+                                </div>
+                            `;
+                        });
+
                         Swal.fire({
-                            title: 'Jadwal Bentrok!',
-                            text: data.message,
-                            icon: 'error',
-                            confirmButtonColor: '#3085d6',
-                            confirmButtonText: 'Ok, Saya Mengerti'
+                            title: '⚠️ Jadwal Bentrok!',
+                            html: `
+                                <div style="text-align: left; padding: 0.5rem;">
+                                    <p style="color: #f8fafc; font-size: 0.95rem; margin-bottom: 1.25rem; opacity: 0.8;">
+                                        Ditemukan <strong>${data.count}</strong> jadwal yang bertabrakan dengan waktu yang Anda pilih:
+                                    </p>
+                                    
+                                    <div style="max-height: 300px; overflow-y: auto; padding-right: 0.5rem; margin-bottom: 1.5rem;">
+                                        ${conflictHtml}
+                                    </div>
+
+                                    <div style="background: rgba(255, 255, 255, 0.05); padding: 1rem; border-radius: 0.75rem; border: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 1.5rem;">
+                                        <p style="margin: 0 0 0.5rem 0; color: #94a3b8; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700;">
+                                            ⏰ Waktu yang Anda Pilih
+                                        </p>
+                                        <p style="margin: 0; color: #2dd4bf; font-size: 1.1rem; font-weight: 700;">
+                                            ${requestData.start_time} - ${requestData.end_time} WIB
+                                        </p>
+                                    </div>
+
+                                    <div style="padding: 1rem; background: rgba(45, 212, 191, 0.1); border-radius: 0.75rem; border: 1px solid rgba(45, 212, 191, 0.2);">
+                                        <p style="margin: 0; color: #2dd4bf; font-size: 0.85rem; font-weight: 500; line-height: 1.5;">
+                                            💡 <strong>Tips:</strong> Silakan pilih waktu lain, atau klik <strong>"Lanjutkan"</strong> jika Anda yakin ingin memperbarui jadwal ini meskipun bertabrakan.
+                                        </p>
+                                    </div>
+                                </div>
+                            `,
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#2dd4bf',
+                            cancelButtonColor: '#64748b',
+                            confirmButtonText: '✓ Lanjutkan Tetap',
+                            cancelButtonText: '✕ Batal',
+                            customClass: {
+                                popup: 'swal-conflict-popup',
+                                title: 'swal-conflict-title',
+                                htmlContainer: 'swal-conflict-content',
+                                confirmButton: 'swal-confirm-btn',
+                                cancelButton: 'swal-cancel-btn'
+                            },
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // Add bypass flag
+                                const hiddenInput = document.createElement('input');
+                                hiddenInput.type = 'hidden';
+                                hiddenInput.name = 'ignore_conflict';
+                                hiddenInput.value = '1';
+                                form.appendChild(hiddenInput);
+                                
+                                form.dataset.confirmed = 'true';
+                                form.submit();
+                            }
                         });
                     } else {
                         form.dataset.confirmed = 'true';
@@ -244,7 +318,6 @@
                     }
                 } catch (error) {
                     console.error('Error checking conflict:', error);
-                    // Jika error cek, tetap biarkan submit normal agar tidak menghalangi user
                     form.dataset.confirmed = 'true';
                     form.submit();
                 }

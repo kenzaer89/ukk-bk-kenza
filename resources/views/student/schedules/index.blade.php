@@ -99,10 +99,16 @@
                         </td>
                         <td class="px-8 py-6">
                             <div class="flex flex-col">
-                                <span class="text-brand-light font-medium">{{ $schedule->scheduled_date->translatedFormat('d F Y') }}</span>
-                                <span class="text-[10px] text-brand-light/40 uppercase tracking-wider">
-                                    {{ \Carbon\Carbon::parse($schedule->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($schedule->end_time)->format('H:i') }} | {{ $schedule->location ?? 'Ruang BK' }}
-                                </span>
+                                <span class="text-brand-light font-bold">{{ $schedule->scheduled_date->translatedFormat('d F Y') }}</span>
+                                <div class="flex items-center gap-2 mt-0.5">
+                                    <span class="text-brand-teal text-xs font-bold">
+                                        {{ \Carbon\Carbon::parse($schedule->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($schedule->end_time)->format('H:i') }}
+                                    </span>
+                                    <span class="text-brand-light/20">|</span>
+                                    <span class="text-xs text-brand-light/40 uppercase tracking-wider">
+                                        {{ $schedule->location ?? 'Ruang BK' }}
+                                    </span>
+                                </div>
                             </div>
                         </td>
                         <td class="px-8 py-6">
@@ -206,8 +212,8 @@
                         </div>
                         <div class="text-right">
                             <span class="text-[10px] text-brand-light/40 uppercase font-bold tracking-widest block mb-1">Tanggal & Waktu</span>
-                            <span class="text-brand-light font-medium text-sm">{{ $schedule->scheduled_date->translatedFormat('d F Y') }}</span>
-                            <span class="text-[10px] text-brand-light/40 block">{{ \Carbon\Carbon::parse($schedule->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($schedule->end_time)->format('H:i') }} WIB</span>
+                            <span class="text-brand-light font-bold text-base block leading-tight">{{ $schedule->scheduled_date->translatedFormat('d F Y') }}</span>
+                            <span class="text-brand-teal font-bold text-sm">{{ \Carbon\Carbon::parse($schedule->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($schedule->end_time)->format('H:i') }} WIB</span>
                         </div>
                     </div>
 

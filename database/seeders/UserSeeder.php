@@ -18,6 +18,19 @@ class UserSeeder extends Seeder
                 'role' => 'admin',
                 'password' => Hash::make('password'),
                 'phone' => '081122334455',
+                'email_verified_at' => now(),
+            ]
+        );
+
+        // Guru BK
+        User::firstOrCreate(
+            ['email' => 'gurubk@gmail.com'],
+            [
+                'name' => 'Guru BK',
+                'role' => 'guru_bk',
+                'password' => Hash::make('password'),
+                'phone' => '082233445566',
+                'email_verified_at' => now(),
             ]
         );
 

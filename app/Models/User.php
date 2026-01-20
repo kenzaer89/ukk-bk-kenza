@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable; // if you use auth features
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable;
 
@@ -36,6 +36,8 @@ class User extends Authenticatable
         'points',     // poin pelanggaran (default 100)
         'is_approved', // status persetujuan
         'extra',      // any extra json/text column
+        'otp_code',
+        'otp_expires_at',
     ];
 
     protected $hidden = [
