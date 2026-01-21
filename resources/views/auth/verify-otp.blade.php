@@ -6,13 +6,25 @@
 <div class="min-h-screen flex items-center justify-center p-6">
     <div class="glass max-w-md w-full p-8 space-y-8">
         <div class="text-center">
-            <h2 class="text-3xl font-extrabold text-brand-teal tracking-tight mb-4">Verifikasi OTP</h2>
+            <h2 class="text-3xl font-extrabold text-brand-teal tracking-tight mb-4">Verifikasi Akun</h2>
             <p class="mt-4 text-sm text-brand-light opacity-70 leading-relaxed px-4">
-                Silakan masukkan 6 digit kode OTP yang telah dikirimkan ke email 
+                Kami telah mengirimkan 6 digit kode OTP ke email:
                 <br>
                 <span class="font-bold text-brand-teal text-base block mt-2">{{ Auth::user()->email }}</span>
             </p>
         </div>
+
+        @if (session('warning'))
+            <div class="p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl text-yellow-200 text-sm text-center">
+                {{ session('warning') }}
+            </div>
+        @endif
+
+        @if (session('success'))
+            <div class="p-4 bg-brand-teal/10 border border-brand-teal/30 rounded-xl text-brand-teal text-sm text-center font-medium">
+                {{ session('success') }}
+            </div>
+        @endif
 
         <form method="POST" action="{{ route('otp.verify') }}" class="mt-8 space-y-6">
             @csrf
@@ -44,6 +56,15 @@
                     <svg class="w-4 h-4 transform group-hover:rotate-180 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                     </svg>
+                </button>
+            </form>
+        </div>
+
+        <div class="text-center mt-6">
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="text-brand-light/40 hover:text-brand-light text-xs transition-colors flex items-center justify-center mx-auto gap-2 group italic">
+                    Gunakan akun lain? <span class="underline">Keluar</span>
                 </button>
             </form>
         </div>

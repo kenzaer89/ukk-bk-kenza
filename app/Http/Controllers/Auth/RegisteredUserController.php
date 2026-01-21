@@ -58,6 +58,9 @@ class RegisteredUserController extends Controller
 
         $class = \App\Models\SchoolClass::find($request->class_id);
 
+        // Generate OTP
+        $otp = sprintf("%06d", mt_rand(100000, 999999));
+
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
@@ -70,6 +73,8 @@ class RegisteredUserController extends Controller
             'absen' => $request->absen,
             'specialization' => $class ? $class->jurusan : null,
             'is_approved' => !in_array($request->role, ['parent', 'wali_kelas']),
+            'otp_code' => $otp,
+            'otp_expires_at' => \Carbon\Carbon::now()->addMinutes(10),
         ]);
 
         if ($request->role === 'parent' && $request->has('student_ids')) {
@@ -81,16 +86,13 @@ class RegisteredUserController extends Controller
             }
         }
 
-        // Generate and send OTP
-        $otp = sprintf("%06d", mt_rand(1, 999999));
-        $user->otp_code = $otp;
-        $user->otp_expires_at = \Carbon\Carbon::now()->addMinutes(10);
-        $user->save();
-
+        // Send OTP via Email
         try {
             \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\OtpMail($otp));
+            $request->session()->flash('success', 'Registrasi berhasil! Silakan cek email Anda untuk kode OTP.');
         } catch (\Exception $e) {
-            // Log error or handle gracefully
+            \Illuminate\Support\Facades\Log::error("Registration Mail Error: " . $e->getMessage());
+            $request->session()->flash('warning', 'Registrasi berhasil, tetapi gagal mengirim email OTP. Silakan klik kirim ulang di halaman verifikasi.');
         }
 
         Auth::login($user);

@@ -2,8 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-[x-cloak] { 
-    display: none !important; 
+[x-cloak] {
+  display: none !important;
 }
 
 /* Hide browser native password reveal/clear icons */
@@ -23,5 +23,5 @@ input::-webkit-credentials-auto-fill-button {
 
 /* Hide datalist dropdown arrow */
 input::-webkit-calendar-picker-indicator {
-    display: none !important;
+  display: none !important;
 }

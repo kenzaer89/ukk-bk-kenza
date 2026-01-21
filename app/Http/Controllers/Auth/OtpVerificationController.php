@@ -49,18 +49,17 @@ class OtpVerificationController extends Controller
     {
         $user = Auth::user();
         
-        $otp = sprintf("%06d", mt_rand(1, 999999));
+        $otp = sprintf("%06d", mt_rand(100000, 999999));
         $user->otp_code = $otp;
         $user->otp_expires_at = Carbon::now()->addMinutes(10);
         $user->save();
 
         try {
             Mail::to($user->email)->send(new OtpMail($otp));
+            return back()->with('success', 'Kode OTP baru telah dikirim ke email Anda.');
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error("Mail Error: " . $e->getMessage());
-            return back()->with('error', 'Gagal mengirim email: ' . $e->getMessage()); // Temporary showing error to user
+            \Illuminate\Support\Facades\Log::error("Mail Resend Error: " . $e->getMessage());
+            return back()->with('error', 'Gagal mengirim email: ' . $e->getMessage());
         }
-
-        return back()->with('success', 'Kode OTP baru telah dikirim ke email Anda.');
     }
 }
