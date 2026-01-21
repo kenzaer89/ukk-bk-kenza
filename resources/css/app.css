@@ -21,7 +21,23 @@ input::-webkit-credentials-auto-fill-button {
   right: 0;
 }
 
-/* Hide datalist dropdown arrow */
-input::-webkit-calendar-picker-indicator {
-  display: none !important;
+/* Force calendar and time icons to be bright white for dark mode */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  display: block !important;
+  cursor: pointer;
+  /* This combination ensures the icon becomes pure white */
+  filter: brightness(0) invert(1);
+  opacity: 0.9;
+  padding: 2px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="time"]::-webkit-calendar-picker-indicator:hover,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+  background-color: rgba(255, 255, 255, 0.1);
 }
