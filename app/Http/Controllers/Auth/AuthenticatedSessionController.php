@@ -16,7 +16,11 @@ class AuthenticatedSessionController extends Controller
      */
     public function create(): View
     {
-        return view('auth.login');
+        $num1 = rand(1, 10);
+        $num2 = rand(1, 10);
+        session(['login_captcha_answer' => $num1 + $num2]);
+        $captcha_question = "$num1 + $num2 = ?";
+        return view('auth.login', compact('captcha_question'));
     }
 
     /**
@@ -24,6 +28,14 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
+        $request->validate([
+            'captcha' => ['required', 'integer', function ($attribute, $value, $fail) {
+                if ($value != session('login_captcha_answer')) {
+                    $fail('Jawaban Pertanyaan Keamanan salah.');
+                }
+            }],
+        ]);
+
         $request->authenticate();
 
         $request->session()->regenerate();

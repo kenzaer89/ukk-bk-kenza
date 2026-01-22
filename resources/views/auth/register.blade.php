@@ -367,8 +367,9 @@
                                 const pass = document.getElementById('password').value;
                                 const confirm = document.getElementById('password_confirmation').value;
                                 const role = roleSelect.value;
+                                const captcha = document.getElementById('captcha').value.trim();
                                 
-                                const commonFilled = name && email && phone && pass && confirm && role;
+                                const commonFilled = name && email && phone && pass && confirm && role && captcha;
 
                                 if (!commonFilled) return;
 
@@ -399,6 +400,27 @@
                             });
                         });
                     </script>
+
+                    <!-- Captcha -->
+                    <div>
+                        <label for="captcha" class="block text-brand-light font-medium mb-2">Pertanyaan Keamanan</label>
+                        <div class="flex items-center gap-3">
+                            <div class="px-4 py-3 bg-brand-teal/20 border border-brand-teal/30 rounded-lg text-brand-teal font-bold select-none whitespace-nowrap">
+                                {{ $captcha_question }}
+                            </div>
+                            <input 
+                                type="number" 
+                                id="captcha" 
+                                name="captcha" 
+                                required 
+                                class="w-full px-4 py-3 bg-brand-dark border border-brand-light/10 rounded-lg text-brand-light placeholder-brand-light/40 focus:outline-none focus:border-brand-teal/50 focus:ring-2 focus:ring-brand-teal/20 transition-all"
+                                placeholder="Jawaban..."
+                            >
+                        </div>
+                        @error('captcha')
+                            <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
 
                     <div id="general-warning-msg" class="hidden mb-5 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg flex items-start gap-3 animate-fade-in-up">
                         <svg class="w-5 h-5 text-yellow-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

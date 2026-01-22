@@ -108,6 +108,27 @@
                         </script>
                     </div>
 
+                    <!-- Captcha -->
+                    <div>
+                        <label for="captcha" class="block text-brand-light font-medium mb-2">Pertanyaan Keamanan</label>
+                        <div class="flex items-center gap-3">
+                            <div class="px-4 py-3 bg-brand-teal/20 border border-brand-teal/30 rounded-lg text-brand-teal font-bold select-none whitespace-nowrap">
+                                {{ $captcha_question }}
+                            </div>
+                            <input 
+                                type="number" 
+                                id="captcha" 
+                                name="captcha" 
+                                required 
+                                class="w-full px-4 py-3 bg-brand-dark border border-brand-light/10 rounded-lg text-brand-light placeholder-brand-light/40 focus:outline-none focus:border-brand-teal/50 focus:ring-2 focus:ring-brand-teal/20 transition-all"
+                                placeholder="Jawaban..."
+                            >
+                        </div>
+                        @error('captcha')
+                            <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
+
                     <!-- Remember Me & Forgot Password -->
                     <div class="flex items-center justify-between text-sm">
                         <label class="flex items-center gap-2 text-brand-light/70 cursor-pointer">

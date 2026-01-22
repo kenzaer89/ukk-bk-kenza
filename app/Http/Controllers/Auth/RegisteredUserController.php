@@ -24,7 +24,13 @@ class RegisteredUserController extends Controller
             ->withCount('childrenConnections')
             ->orderBy('name')
             ->get();
-        return view('auth.register', compact('classes', 'students'));
+        
+        $num1 = rand(1, 10);
+        $num2 = rand(1, 10);
+        session(['register_captcha_answer' => $num1 + $num2]);
+        $captcha_question = "$num1 + $num2 = ?";
+
+        return view('auth.register', compact('classes', 'students', 'captcha_question'));
     }
 
     /**
@@ -54,6 +60,11 @@ class RegisteredUserController extends Controller
                     }
                 },
             ],
+            'captcha' => ['required', 'integer', function ($attribute, $value, $fail) {
+                if ($value != session('register_captcha_answer')) {
+                    $fail('Jawaban Pertanyaan Keamanan salah.');
+                }
+            }],
         ]);
 
         $class = \App\Models\SchoolClass::find($request->class_id);
