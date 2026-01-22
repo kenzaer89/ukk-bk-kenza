@@ -62,6 +62,7 @@ class ParentDashboardController extends Controller
             'student' => $student,
             'violations' => Violation::where('student_id', $student->id)
                 ->with(['rule', 'student.schoolClass', 'teacher'])
+                ->where('status', 'resolved')
                 ->latest('violation_date')
                 ->limit(3)
                 ->get(),
@@ -119,6 +120,7 @@ class ParentDashboardController extends Controller
 
         $violations = Violation::where('student_id', $student->id)
             ->with(['rule', 'teacher'])
+            ->where('status', 'resolved')
             ->latest('violation_date')
             ->paginate(10);
 

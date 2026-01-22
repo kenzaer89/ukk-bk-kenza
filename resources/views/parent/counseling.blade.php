@@ -42,15 +42,15 @@
             <div class="bg-brand-gray border border-white/10 rounded-2xl overflow-hidden hover:border-blue-500/30 transition-all duration-300">
                 <div class="flex flex-col md:flex-row">
                     <div class="p-6 flex-1">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center gap-3">
-                                <span class="px-3 py-1 bg-blue-500/10 text-blue-400 text-[10px] font-black uppercase tracking-widest rounded-full border border-blue-500/20">
-                                    {{ $session->session_type ?? 'Konseling' }}
-                                </span>
-                                <span class="text-brand-light/40 text-xs">ID: SESSION-{{ str_pad($session->id, 5, '0', STR_PAD_LEFT) }}</span>
-                            </div>
+                        <div class="flex items-center justify-end mb-4">
                             <span class="px-3 py-1 @if($session->status == 'completed' || $session->status == 'Selesai') bg-emerald-500/20 text-emerald-400 @elseif($session->status == 'cancelled' || $session->status == 'Dibatalkan') bg-rose-500/20 text-rose-400 @else bg-amber-500/20 text-amber-500 @endif text-xs font-bold rounded-lg uppercase">
-                                {{ $session->status }}
+                                @if($session->status == 'completed' || $session->status == 'Selesai')
+                                    Selesai
+                                @elseif($session->status == 'cancelled' || $session->status == 'Dibatalkan')
+                                    Dibatalkan
+                                @else
+                                    {{ $session->status }}
+                                @endif
                             </span>
                         </div>
 

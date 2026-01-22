@@ -53,7 +53,6 @@
                         <th class="px-8 py-4">JENIS PELANGGARAN</th>
                         <th class="px-8 py-4">WAKTU DAN PENCATAT</th>
                         <th class="px-8 py-4">POIN</th>
-                        <th class="px-8 py-4">STATUS</th>
                         <th class="px-8 py-4 text-center">AKSI</th>
                     </tr>
                 </thead>
@@ -79,23 +78,7 @@
                         <td class="px-8 py-6">
                             <span class="text-rose-400 font-bold">-{{ $violation->rule->points ?? 0 }}</span>
                         </td>
-                        <td class="px-8 py-6">
-                            @php
-                                $statusColors = [
-                                    'pending' => 'bg-yellow-500/20 text-yellow-500',
-                                    'resolved' => 'bg-green-500/20 text-green-500',
-                                    'canceled' => 'bg-red-500/20 text-red-500',
-                                ];
-                                $statusLabels = [
-                                    'pending' => 'Menunggu',
-                                    'resolved' => 'Selesai',
-                                    'canceled' => 'Dibatalkan',
-                                ];
-                            @endphp
-                            <span class="px-3 py-1 inline-flex text-[10px] leading-5 font-bold rounded-full uppercase tracking-widest {{ $statusColors[$violation->status] ?? 'bg-gray-500/20 text-gray-500' }}">
-                                {{ $statusLabels[$violation->status] ?? ucfirst($violation->status) }}
-                            </span>
-                        </td>
+
                         <td class="px-8 py-6 text-center">
                             <button x-data @click="$dispatch('open-violation-detail-{{ $violation->id }}')" class="px-4 py-1.5 bg-brand-light/5 border border-brand-light/10 text-brand-light/80 rounded-lg font-bold hover:bg-brand-teal hover:text-brand-dark transition-all text-[10px] uppercase tracking-wider">
                                 Detail
@@ -185,26 +168,7 @@
                         </div>
                     </div>
                     
-                    @php
-                        $statusColors = [
-                            'pending' => 'bg-yellow-500/20 text-yellow-500',
-                            'resolved' => 'bg-green-500/20 text-green-500',
-                            'canceled' => 'bg-red-500/20 text-red-500',
-                        ];
-                        $statusLabels = [
-                            'pending' => 'Menunggu',
-                            'resolved' => 'Selesai',
-                            'canceled' => 'Dibatalkan',
-                        ];
-                    @endphp
 
-                    <!-- Status -->
-                     <div>
-                        <span class="text-[10px] text-brand-light/40 uppercase font-bold tracking-widest block mb-1">Status Penyelesaian</span>
-                         <span class="px-3 py-1 inline-flex text-xs font-bold rounded-full uppercase tracking-widest {{ $statusColors[$violation->status] ?? 'bg-gray-500/20 text-gray-500' }}">
-                                {{ $statusLabels[$violation->status] ?? ucfirst($violation->status) }}
-                        </span>
-                     </div>
 
                     <!-- Description -->
                     <div>

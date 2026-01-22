@@ -87,12 +87,14 @@
                             name="phone" 
                             value="{{ old('phone') }}" 
                             required
+                            minlength="12"
+                            maxlength="12"
                             inputmode="numeric"
-                            oninput="this.value = this.value.replace(/[^0-9]/g, '');"
+                            oninput="this.value = this.value.replace(/[^0-9]/g, '').substring(0, 12);"
                             class="w-full px-4 py-3 bg-brand-dark border border-brand-light/10 rounded-lg text-brand-light placeholder-brand-light/40 focus:outline-none focus:border-brand-teal/50 focus:ring-2 focus:ring-brand-teal/20 transition-all"
-                            placeholder="Contoh: 081234567890"
+                            placeholder="Contoh: 081234567890 (Wajib 12 Digit)"
                         >
-                        <p class="mt-1 text-[10px] text-brand-light/40 italic">Hanya masukkan angka tanpa spasi atau karakter lain.</p>
+                        <p class="mt-1 text-[10px] text-brand-light/40 italic">Nomor telepon wajib diisi tepat 12 digit angka.</p>
                         @error('phone')
                             <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                         @enderror
@@ -186,7 +188,6 @@
                         >
                             <option value="student" {{ old('role') == 'student' ? 'selected' : '' }}>Murid</option>
                             <option value="parent" {{ old('role') == 'parent' ? 'selected' : '' }}>Orang Tua</option>
-                            <option value="wali_kelas" {{ old('role') == 'wali_kelas' ? 'selected' : '' }}>Wali Kelas</option>
                         </select>
                         @error('role')
                             <p class="mt-1 text-sm text-red-400">{{ $message }}</p>

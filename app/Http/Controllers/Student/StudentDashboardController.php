@@ -43,6 +43,7 @@ class StudentDashboardController extends Controller
         // --- Pelanggaran & Prestasi ---
         $recentViolations = Violation::with('rule')
             ->where('student_id', $user->id)
+            ->where('status', 'resolved')
             ->latest()
             ->limit(3)
             ->get();
@@ -61,7 +62,7 @@ class StudentDashboardController extends Controller
                 ->whereDate('scheduled_date', '>=', now())
                 ->count(),
             'pending_requests' => CounselingRequest::where('student_id', $user->id)->where('status', 'pending')->count(),
-            'violations' => Violation::where('student_id', $user->id)->count(),
+            'violations' => Violation::where('student_id', $user->id)->where('status', 'resolved')->count(),
             'achievements' => Achievement::where('student_id', $user->id)->count(),
         ];
 
@@ -97,6 +98,7 @@ class StudentDashboardController extends Controller
     {
         $violations = Violation::with('rule')
             ->where('student_id', Auth::id())
+            ->where('status', 'resolved')
             ->latest('violation_date')
             ->paginate(10);
 

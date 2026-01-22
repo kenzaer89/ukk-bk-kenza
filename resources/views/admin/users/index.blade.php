@@ -146,11 +146,25 @@
                                     </button>
 
                                     @if (!$user->is_approved)
-                                        <form action="{{ route('admin.users.approve', $user) }}" method="POST" class="inline">
+                                        <form action="{{ route('admin.users.approve', $user) }}" method="POST" class="inline approve-user-form"
+                                              data-user-name="{{ $user->name }}"
+                                              data-user-role="{{ $user->role }}"
+                                              data-user-children="{{ $user->role === 'parent' ? ($user->students->map(fn($s) => $s->name . ($s->schoolClass ? " ({$s->schoolClass->name})" : ""))->join(', ') ?: '-') : '' }}">
                                             @csrf
-                                            <button type="submit" class="p-2 bg-white/5 hover:bg-green-500 text-gray-400 hover:text-white rounded-lg transition-all" title="Setujui">
+                                            <button type="button" onclick="confirmApprove(this)" class="p-2 bg-white/5 hover:bg-green-500 text-gray-400 hover:text-white rounded-lg transition-all" title="Setujui">
                                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                                </svg>
+                                            </button>
+                                        </form>
+
+                                        <form action="{{ route('admin.users.reject', $user) }}" method="POST" class="inline reject-user-form"
+                                              data-user-name="{{ $user->name }}"
+                                              data-user-role="{{ $user->role }}">
+                                            @csrf
+                                            <button type="button" onclick="confirmReject(this)" class="p-2 bg-white/5 hover:bg-orange-500 text-gray-400 hover:text-white rounded-lg transition-all" title="Tolak">
+                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                                 </svg>
                                             </button>
                                         </form>
@@ -314,78 +328,152 @@
 
 @push('scripts')
 <script>
+function confirmApprove(button) {
+    const form = button.closest('form');
+    const userName = form.dataset.userName;
+    const userRole = form.dataset.userRole;
+    const userChildren = form.dataset.userChildren;
+    
+    let message = `Apakah anda yakin menyetujui akun <b>${userName}</b>?`;
+    if (userRole === 'parent' && userChildren && userChildren !== '-') {
+        message = `Apakah Anda yakin menyetujui <b>${userName}</b> sebagai orang tua dari <b class="text-brand-teal">${userChildren}</b>?`;
+    }
+
+    Swal.fire({
+        html: `
+            <div style="padding: 1.5rem 1rem 1rem; text-align: center;">
+                <div style="width: 80px; height: 80px; margin: 0 auto 1.5rem; background: rgba(16, 185, 129, 0.1); border-radius: 24px; display: flex; align-items: center; justify-content: center; border: 2px solid rgba(16, 185, 129, 0.3); box-shadow: 0 0 30px rgba(16, 185, 129, 0.1);">
+                    <svg style="width: 40px; height: 40px; color: #10b981; filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.4));" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                    </svg>
+                </div>
+                <h3 style="color: #ffffff; font-size: 1.75rem; font-weight: 900; margin: 0 0 1rem 0; letter-spacing: -0.025em;">Setujui Pengguna</h3>
+                <p style="color: #94a3b8; font-size: 1.1rem; line-height: 1.6; margin: 0;">${message}</p>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonColor: '#10b981',
+        cancelButtonColor: '#334155',
+        confirmButtonText: 'Ya, Setujui Akun',
+        cancelButtonText: 'Batal',
+        background: '#0f172a',
+        color: '#ffffff',
+        customClass: {
+            popup: 'rounded-[2rem] border border-white/10 shadow-2xl backdrop-blur-xl',
+            confirmButton: 'px-8 py-3 rounded-xl font-bold transition-all hover:scale-105',
+            cancelButton: 'px-8 py-3 rounded-xl font-bold transition-all'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            form.submit();
+        }
+    });
+}
+
+function confirmReject(button) {
+    const form = button.closest('form');
+    const userName = form.dataset.userName;
+    
+    Swal.fire({
+        html: `
+            <div style="padding: 1.5rem 1rem 1rem; text-align: center;">
+                <div style="width: 80px; height: 80px; margin: 0 auto 1.5rem; background: rgba(249, 115, 22, 0.1); border-radius: 24px; display: flex; align-items: center; justify-content: center; border: 2px solid rgba(249, 115, 22, 0.3); box-shadow: 0 0 30px rgba(249, 115, 22, 0.1);">
+                    <svg style="width: 36px; height: 36px; color: #f97316; filter: drop-shadow(0 0 8px rgba(249, 115, 22, 0.4));" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </div>
+                <h3 style="color: #ffffff; font-size: 1.75rem; font-weight: 900; margin: 0 0 1rem 0; letter-spacing: -0.025em;">Tolak Permintaan</h3>
+                <p style="color: #94a3b8; font-size: 1.1rem; line-height: 1.6; margin: 0;">
+                    Apakah Anda yakin menolak permintaan akun dari <b>${userName}</b>?<br>
+                    <span style="font-size: 0.9rem; color: #ef4444; background: rgba(239, 68, 68, 0.1); padding: 4px 12px; border-radius: 8px; display: inline-block; margin-top: 12px;" class="font-medium inline-flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        Akun ini akan dihapus secara permanen.
+                    </span>
+                </p>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonColor: '#f97316',
+        cancelButtonColor: '#334155',
+        confirmButtonText: 'Ya, Tolak & Hapus',
+        cancelButtonText: 'Batal',
+        background: '#0f172a',
+        color: '#ffffff',
+        customClass: {
+            popup: 'rounded-[2rem] border border-white/10 shadow-2xl backdrop-blur-xl',
+            confirmButton: 'px-8 py-3 rounded-xl font-bold transition-all hover:scale-105',
+            cancelButton: 'px-8 py-3 rounded-xl font-bold transition-all'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            form.submit();
+        }
+    });
+}
+
 function confirmDelete(button) {
     const form = button.closest('form');
     const userName = form.dataset.userName;
     const userEmail = form.dataset.userEmail;
-    const userRole = form.dataset.userRole;
-    const userClass = form.dataset.userClass;
     
-    // Build user info display
     let userDetails = `
-        <div style="background: linear-gradient(135deg, rgba(45, 212, 191, 0.1) 0%, rgba(45, 212, 191, 0.05) 100%); 
+        <div style="background: rgba(255, 255, 255, 0.03); 
                     padding: 1.5rem; 
-                    border-radius: 1rem; 
-                    border: 2px solid rgba(45, 212, 191, 0.3);
+                    border-radius: 1.5rem; 
+                    border: 1px solid rgba(255, 255, 255, 0.05);
                     margin-bottom: 1.5rem;">
             <div style="text-align: center;">
-                <div style="width: 80px; 
-                           height: 80px; 
+                <div style="width: 64px; 
+                           height: 64px; 
                            margin: 0 auto 1rem; 
                            background: linear-gradient(135deg, #2dd4bf 0%, #0d9488 100%); 
-                           border-radius: 50%; 
+                           border-radius: 20px; 
                            display: flex; 
                            align-items: center; 
                            justify-content: center;
-                           box-shadow: 0 8px 20px rgba(45, 212, 191, 0.3);">
-                    <span style="font-size: 2.5rem; font-weight: 900; color: #0f172a;">${userName.charAt(0).toUpperCase()}</span>
+                           box-shadow: 0 8px 20px rgba(13, 148, 136, 0.3);">
+                    <span style="font-size: 1.5rem; font-weight: 900; color: #0f172a;">${userName.charAt(0).toUpperCase()}</span>
                 </div>
-                <h3 style="margin: 0 0 0.5rem 0; font-size: 1.5rem; font-weight: 800; color: #2dd4bf;">${userName}</h3>
-                <p style="margin: 0 0 0.25rem 0; color: #94a3b8; font-size: 0.9rem;">📧 ${userEmail}</p>
-                ${userRole === 'student' && userClass && userClass !== '-' ? 
-                    `<p style="margin: 0; color: #2dd4bf; font-weight: 700; font-size: 1rem;">🎓 ${userClass}</p>` 
-                    : ''}
+                <h3 style="margin: 0 0 0.25rem 0; font-size: 1.25rem; font-weight: 800; color: #ffffff;">${userName}</h3>
+                <p style="margin: 0; color: #64748b; font-size: 0.9rem;">${userEmail}</p>
             </div>
         </div>
     `;
     
     Swal.fire({
-        title: '🗑️ Hapus Pengguna?',
         html: `
-            <div style="padding: 0.5rem;">
-                ${userDetails}
-                <div style="background: rgba(239, 68, 68, 0.1); 
-                           padding: 1rem; 
-                           border-radius: 0.75rem; 
-                           border-left: 4px solid #EF4444;">
-                    <p style="margin: 0; color: #f87171; font-size: 0.9rem; line-height: 1.6; font-weight: 500;">
-                        ⚠️ Semua data pengguna ini akan terhapus permanen dan tidak dapat dikembalikan.
-                    </p>
+            <div style="padding: 1.5rem 0.5rem 0.5rem; text-align: center;">
+                <div style="width: 80px; height: 80px; margin: 0 auto 1.5rem; background: rgba(239, 68, 68, 0.1); border-radius: 24px; display: flex; align-items: center; justify-content: center; border: 2px solid rgba(239, 68, 68, 0.3); box-shadow: 0 0 30px rgba(239, 68, 68, 0.1);">
+                    <svg style="width: 40px; height: 40px; color: #ef4444; filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.4));" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                </div>
+                <h3 style="color: #ffffff; font-size: 1.75rem; font-weight: 900; margin: 0 0 1rem 0; letter-spacing: -0.025em;">Hapus Pengguna</h3>
+                <div style="text-align: left;">
+                    ${userDetails}
+                    <div style="background: rgba(239, 68, 68, 0.1); 
+                               padding: 1.25rem; 
+                               border-radius: 1rem; 
+                               border-left: 4px solid #ef4444;">
+                        <p style="margin: 0; color: #f87171; font-size: 0.95rem; line-height: 1.6;">
+                            <strong>Peringatan!</strong> Seluruh data terkait pengguna ini akan dihapus permanen dari sistem.
+                        </p>
+                    </div>
                 </div>
             </div>
         `,
-        icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#EF4444',
-        cancelButtonColor: '#64748b',
-        confirmButtonText: '✓ Ya, Hapus',
-        cancelButtonText: '✕ Batal',
-        customClass: {
-            popup: 'swal-delete-popup',
-            title: 'swal-delete-title',
-            htmlContainer: 'swal-delete-content',
-            confirmButton: 'swal-confirm-delete-btn',
-            cancelButton: 'swal-cancel-btn'
-        },
-        buttonsStyling: true,
-        allowOutsideClick: false,
-        allowEscapeKey: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#334155',
+        confirmButtonText: 'Ya, Hapus Permanen',
+        cancelButtonText: 'Batal',
+        background: '#0f172a',
+        color: '#ffffff',
         width: '32rem',
-        showClass: {
-            popup: 'animate__animated animate__zoomIn animate__faster'
-        },
-        hideClass: {
-            popup: 'animate__animated animate__zoomOut animate__faster'
+        customClass: {
+            popup: 'rounded-[2rem] border border-white/10 shadow-2xl backdrop-blur-xl',
+            confirmButton: 'px-8 py-3 rounded-xl font-bold transition-all hover:scale-105',
+            cancelButton: 'px-8 py-3 rounded-xl font-bold transition-all'
         }
     }).then((result) => {
         if (result.isConfirmed) {

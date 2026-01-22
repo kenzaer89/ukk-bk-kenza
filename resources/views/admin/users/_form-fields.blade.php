@@ -18,11 +18,13 @@
 
     <div>
         <label for="phone" class="block text-sm font-medium text-gray-300 mb-2">Nomor Telepon</label>
-        <input type="tel" name="phone" id="phone" value="{{ old('phone', $user->phone ?? '') }}"
+        <input type="tel" name="phone" id="phone" value="{{ old('phone', $user->phone ?? '') }}" required
                placeholder="Contoh: 081234567890"
-               pattern="[0-9]*"
-               oninput="this.value = this.value.replace(/[^0-9]/g, '');"
+               minlength="12"
+               maxlength="12"
+               oninput="this.value = this.value.replace(/[^0-9]/g, '').substring(0, 12);"
                class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-brand-teal">
+        <p class="mt-1 text-[10px] text-gray-500 italic">Nomor telepon harus terdiri dari tepat 12 digit angka.</p>
         @error('phone') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
     </div>
     

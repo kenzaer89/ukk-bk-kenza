@@ -29,7 +29,7 @@ class WaliDashboardController extends Controller
         // 2. Statistik
         $stats = [
             'total_students' => $class->students->count(),
-            'total_violations' => Violation::whereIn('student_id', $studentIds)->count(),
+            'total_violations' => Violation::whereIn('student_id', $studentIds)->where('status', 'resolved')->count(),
             'total_achievements' => Achievement::whereIn('student_id', $studentIds)->count(),
             'total_sessions' => CounselingSession::whereIn('student_id', $studentIds)->where('status', 'completed')->count(),
         ];
@@ -37,6 +37,7 @@ class WaliDashboardController extends Controller
         // 3. Aktivitas Terbaru Kelas
         $recentViolations = Violation::with(['student', 'rule'])
             ->whereIn('student_id', $studentIds)
+            ->where('status', 'resolved')
             ->latest()
             ->limit(5)
             ->get();
@@ -85,7 +86,9 @@ class WaliDashboardController extends Controller
 
         $student->load([
             'schoolClass',
-            'violations.rule',
+            'violations' => function($query) {
+                $query->where('status', 'resolved')->with('rule')->latest();
+            },
             'achievements',
             'sessions' => function($query) {
                 $query->where('status', 'completed')->with('counselor')->latest();

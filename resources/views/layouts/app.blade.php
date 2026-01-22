@@ -68,14 +68,13 @@
             background: rgba(255, 255, 255, 0.08) !important;
             color: #f8fafc !important;
         }
-        /* Elegant SweetAlert2 Icons */
         .swal2-icon {
             border: none !important;
             margin-top: 1.5rem !important;
             margin-bottom: 1.5rem !important;
             width: 5rem !important;
             height: 5rem !important;
-            display: flex !important;
+            display: flex;
             align-items: center !important;
             justify-content: center !important;
             background: rgba(255, 255, 255, 0.03) !important;
@@ -365,7 +364,7 @@
                     <a href="{{ route('parent.dashboard') }}" class="{{ request()->routeIs('parent.dashboard') ? 'active' : '' }}">
                         <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg> Dashboard
                     </a>
-                    @if(session('selected_child_id'))
+                    @if($user->is_approved && session('selected_child_id'))
                         <a href="{{ route('parent.counseling.index') }}" class="{{ request()->routeIs('parent.counseling.*') ? 'active' : '' }}">
                             <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg> Sesi Konseling
                         </a>

@@ -184,7 +184,7 @@ class UserController extends Controller
             'name' => 'required|string|max:191',
             'email' => ['required', 'email', 'max:191', Rule::unique('users', 'email')->ignore($userId)],
             'role' => ['required', Rule::in(['guru_bk', 'wali_kelas', 'student', 'parent'])],
-            'phone' => 'nullable|string|max:30',
+            'phone' => 'required|string|size:12',
             'address' => 'nullable|string',
         ];
 
