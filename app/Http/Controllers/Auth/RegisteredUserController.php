@@ -25,12 +25,7 @@ class RegisteredUserController extends Controller
             ->orderBy('name')
             ->get();
         
-        $num1 = rand(1, 10);
-        $num2 = rand(1, 10);
-        session(['register_captcha_answer' => $num1 + $num2]);
-        $captcha_question = "$num1 + $num2 = ?";
-
-        return view('auth.register', compact('classes', 'students', 'captcha_question'));
+        return view('auth.register', compact('classes', 'students'));
     }
 
     /**
@@ -60,11 +55,7 @@ class RegisteredUserController extends Controller
                     }
                 },
             ],
-            'captcha' => ['required', 'integer', function ($attribute, $value, $fail) {
-                if ($value != session('register_captcha_answer')) {
-                    $fail('Jawaban Pertanyaan Keamanan salah.');
-                }
-            }],
+            'g-recaptcha-response' => ['required', new \App\Rules\Recaptcha],
         ]);
 
         $class = \App\Models\SchoolClass::find($request->class_id);

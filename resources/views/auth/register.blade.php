@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body class="bg-brand-dark text-brand-light font-sans antialiased">
     <div class="min-h-screen flex items-center justify-center px-4 py-12 relative overflow-hidden">
@@ -40,7 +41,7 @@
                     </div>
                 @endif
 
-                <form method="POST" action="{{ route('register') }}" class="space-y-5">
+                <form method="POST" action="{{ route('register') }}" class="space-y-5" id="register-form">
                     @csrf
 
                     <!-- Name -->
@@ -367,9 +368,8 @@
                                 const pass = document.getElementById('password').value;
                                 const confirm = document.getElementById('password_confirmation').value;
                                 const role = roleSelect.value;
-                                const captcha = document.getElementById('captcha').value.trim();
                                 
-                                const commonFilled = name && email && phone && pass && confirm && role && captcha;
+                                const commonFilled = name && email && phone && pass && confirm && role;
 
                                 if (!commonFilled) return;
 
@@ -403,21 +403,8 @@
 
                     <!-- Captcha -->
                     <div>
-                        <label for="captcha" class="block text-brand-light font-medium mb-2">Pertanyaan Keamanan</label>
-                        <div class="flex items-center gap-3">
-                            <div class="px-4 py-3 bg-brand-teal/20 border border-brand-teal/30 rounded-lg text-brand-teal font-bold select-none whitespace-nowrap">
-                                {{ $captcha_question }}
-                            </div>
-                            <input 
-                                type="number" 
-                                id="captcha" 
-                                name="captcha" 
-                                required 
-                                class="w-full px-4 py-3 bg-brand-dark border border-brand-light/10 rounded-lg text-brand-light placeholder-brand-light/40 focus:outline-none focus:border-brand-teal/50 focus:ring-2 focus:ring-brand-teal/20 transition-all"
-                                placeholder="Jawaban..."
-                            >
-                        </div>
-                        @error('captcha')
+                        <div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.key') }}"></div>
+                        @error('g-recaptcha-response')
                             <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
@@ -439,6 +426,70 @@
                         Daftar Sekarang
                     </button>
                 </form>
+
+                <script>
+                    document.getElementById('register-form').addEventListener('submit', function(event) {
+                        var response = grecaptcha.getResponse();
+                        if (response.length === 0) {
+                            event.preventDefault();
+                            // Show custom modal
+                            const modal = document.getElementById('recaptcha-modal');
+                            const modalContent = document.getElementById('recaptcha-modal-content');
+                            
+                            modal.classList.remove('hidden');
+                            // Small delay to allow display:block to apply before opacity transition
+                            setTimeout(() => {
+                                modal.querySelector('div').classList.remove('opacity-0');
+                                modalContent.classList.remove('scale-95', 'opacity-0');
+                                modalContent.classList.add('scale-100', 'opacity-100');
+                            }, 10);
+                        }
+                    });
+
+                    function closeRecaptchaModal() {
+                        const modal = document.getElementById('recaptcha-modal');
+                        const modalContent = document.getElementById('recaptcha-modal-content');
+                        
+                        modalContent.classList.remove('scale-100', 'opacity-100');
+                        modalContent.classList.add('scale-95', 'opacity-0');
+                        modal.querySelector('div').classList.add('opacity-0');
+                        
+                        setTimeout(() => {
+                            modal.classList.add('hidden');
+                        }, 300);
+                    }
+                </script>
+
+                <!-- Custom Aesthetic Modal -->
+                <div id="recaptcha-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                    <!-- Background backdrop -->
+                    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity opacity-0 duration-300 ease-out" onclick="closeRecaptchaModal()"></div>
+
+                    <!-- Modal panel -->
+                    <div id="recaptcha-modal-content" class="relative z-10 w-full max-w-sm transform overflow-hidden rounded-2xl bg-brand-gray border border-brand-teal/30 p-6 text-left shadow-2xl transition-all scale-95 opacity-0 duration-300 ease-out sm:my-8 m-4">
+                        <div class="text-center">
+                            <!-- Icon -->
+                            <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-brand-teal/10 mb-4 ring-1 ring-brand-teal/30">
+                                <svg class="h-8 w-8 text-brand-teal" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
+                                </svg>
+                            </div>
+                            
+                            <h3 class="text-xl font-bold leading-6 text-brand-light" id="modal-title">Verifikasi Diperlukan</h3>
+                            <div class="mt-2">
+                                <p class="text-sm text-brand-light/70">
+                                    Mohon selesaikan verifikasi <b>"I'm not a robot"</b> terlebih dahulu untuk melanjutkan pendaftaran.
+                                </p>
+                            </div>
+                            
+                            <div class="mt-6">
+                                <button type="button" onclick="closeRecaptchaModal()" class="inline-flex w-full justify-center rounded-lg bg-brand-teal px-3 py-2.5 text-sm font-bold text-brand-dark shadow-sm hover:bg-[#5a8e91] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-teal transition-all transform hover:-translate-y-0.5">
+                                    Oke, Saya Mengerti
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Login Link -->
                 <div class="mt-6 text-center text-sm text-brand-light/60">
