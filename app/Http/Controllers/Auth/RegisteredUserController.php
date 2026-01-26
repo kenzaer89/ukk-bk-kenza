@@ -35,6 +35,15 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        // Jika email sudah ada tapi belum verifikasi, hapus yang lama agar bisa daftar ulang
+        $existingUnverifiedUser = User::where('email', $request->email)
+            ->whereNull('email_verified_at')
+            ->first();
+
+        if ($existingUnverifiedUser) {
+            $existingUnverifiedUser->delete();
+        }
+
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:'.User::class],

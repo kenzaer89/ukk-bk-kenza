@@ -33,6 +33,12 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         $user = Auth::user();
+
+        // Pastikan user sudah verifikasi OTP
+        if (!$user->email_verified_at) {
+            return redirect()->route('otp.verify');
+        }
+
         switch ($user->role) {
             case 'admin':
             case 'guru_bk':

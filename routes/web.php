@@ -19,6 +19,12 @@ Route::get('/', function () {
     // Kalau sudah login, langsung ke dashboard sesuai role
     if (Auth::check()) {
         $user = Auth::user();
+
+        // Pastikan user sudah verifikasi OTP sebelum ke dashboard
+        if (!$user->email_verified_at) {
+            return redirect()->route('otp.verify');
+        }
+
         switch ($user->role) {
             case 'admin':
             case 'guru_bk': // Guru BK diarahkan ke dashboard Admin
